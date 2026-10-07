@@ -790,7 +790,7 @@
         await say("WELL...");
         await say("THEN I REGRET TO INFORM YOU.");
         await say("THAT YOUR DISCONNECTION", 115);
-        await say("HAS ARRIVED.", 145);
+        await say("IS FATE.", 145);
         showDialogueEl(false);
         hideChoice();
         soulButton.classList.remove("visible");
