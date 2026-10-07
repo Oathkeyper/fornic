@@ -44,7 +44,7 @@
         await wait(850);
         const destinations = {
             lopati: "forlopati/index.html",
-            jordan: "forjordan/index.html"
+            jordan: "jordanspage/index.html"
         };
         if (destinations[name]) {
             window.location.replace(destinations[name]);
