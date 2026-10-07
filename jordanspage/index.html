@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Jordan</title>
+    <link rel="stylesheet" href="../style.css">
+    <link rel="preload" href="../assets/art/forgottenman/eyes.png" as="image">
+    <style>
+        #eram-page3 {
+            position: fixed;
+            display: grid;
+            place-items: center;
+            opacity: 1;
+        }
+        #eram-page3-dialogue {
+            position: relative;
+            top: auto;
+            left: auto;
+            width: 92%;
+            min-height: 5em;
+        }
+        .eram-page3-layer { text-align: center; }
+        #eram-page3::before {
+            content: "";
+            position: absolute;
+            top: -35%;
+            left: 0;
+            width: 100%;
+            height: 30%;
+            pointer-events: none;
+            background: linear-gradient(transparent, rgba(255,255,255,.045), transparent);
+            filter: blur(5px);
+            animation: jordanVcrRoll 7s linear infinite;
+        }
+        @keyframes jordanVcrRoll { to { transform: translateY(560%); } }
+        #start-screen { z-index: 200; }
+        #start-screen[hidden] { display: none; }
+    </style>
+</head>
+<body>
+    <main id="eram-page3">
+        <div id="eram-page3-dialogue" aria-live="polite">
+            <p id="eram-page3-red" class="eram-page3-layer" aria-hidden="true"></p>
+            <p id="eram-page3-cyan" class="eram-page3-layer" aria-hidden="true"></p>
+            <p id="eram-page3-white" class="eram-page3-layer"></p>
+        </div>
+    </main>
+    <div id="start-screen" hidden>
+        <button id="start-button" type="button">CLICK TO BEGIN</button>
+    </div>
+    <script>
+        (() => {
+            "use strict";
+            const layers = ["eram-page3-red", "eram-page3-cyan", "eram-page3-white"].map(id => document.getElementById(id));
+            const startScreen = document.getElementById("start-screen");
+            const music = new Audio("../assets/music/eram.mp3");
+            const talking = new Audio("../assets/sounds/eram-talking.wav");
+            const finishSound = new Audio("../assets/sounds/eram-finish-talking.wav");
+            const demon = new Audio("../assets/sounds/thedemon.mp3");
+            [music, talking, finishSound, demon].forEach(sound => { sound.preload = "auto"; });
+            music.loop = true;
+            music.volume = 0.62;
+            talking.volume = 0.58;
+            finishSound.volume = 0.72;
+            demon.volume = 1;
+            let running = false;
+            let starting = false;
+            const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+            function play(sound) {
+                sound.currentTime = 0;
+                sound.play().catch(() => {});
+            }
+            async function typeLine(text, letterDelay, spaceDelay = letterDelay) {
+                layers.forEach(layer => { layer.textContent = ""; });
+                for (let index = 0; index < text.length; index++) {
+                    const char = text[index];
+                    layers.forEach(layer => { layer.textContent = text.slice(0, index + 1); });
+                    if (char !== " ") play(talking);
+                    await wait(char === " " ? spaceDelay : letterDelay);
+                }
+                talking.pause();
+                play(finishSound);
+            }
+            function jumpscare() {
+                [music, talking, finishSound].forEach(sound => { sound.pause(); sound.currentTime = 0; });
+                const scare = document.createElement("div");
+                scare.id = "secret-eyes-jumpscare";
+                scare.style.cssText = "position:fixed;inset:0;z-index:2147483647;background:#000;display:flex;align-items:center;justify-content:center;";
+                const eyes = document.createElement("img");
+                eyes.src = "../assets/art/forgottenman/eyes.png";
+                eyes.alt = "";
+                eyes.draggable = false;
+                eyes.style.cssText = "width:384px;height:144px;object-fit:fill;image-rendering:pixelated;image-rendering:crisp-edges;pointer-events:none;user-select:none;";
+                scare.appendChild(eyes);
+                document.body.appendChild(scare);
+                let finished = false;
+                const end = () => {
+                    if (finished) return;
+                    finished = true;
+                    scare.replaceChildren();
+                    try { window.close(); } catch (_) {}
+                };
+                demon.addEventListener("ended", end, { once: true });
+                demon.addEventListener("error", () => setTimeout(end, 4200), { once: true });
+                demon.currentTime = 0;
+                demon.play().catch(() => setTimeout(end, 4200));
+            }
+            async function begin() {
+                if (running || starting) return;
+                starting = true;
+                try { await music.play(); }
+                catch (_) {
+                    starting = false;
+                    startScreen.hidden = false;
+                    return;
+                }
+                running = true;
+                starting = false;
+                startScreen.hidden = true;
+                await wait(900);
+                await typeLine("...", 300);
+                await wait(1600);
+                await typeLine("...?", 300);
+                await wait(1800);
+                await typeLine("L O O K I N G  F O R  S O M E T H I N G ?", 220, 100);
+                await wait(1300);
+                jumpscare();
+            }
+            document.getElementById("start-button").addEventListener("click", begin);
+            document.addEventListener("keydown", event => {
+                if (!running && ["z", "Enter", " "].includes(event.key)) {
+                    event.preventDefault();
+                    begin();
+                }
+            });
+            begin();
+        })();
+    </script>
+</body>
+</html>

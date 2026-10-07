@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>...</title>
+
+    <style>
+@font-face {
+            font-family: "EramFont";
+            src:
+                url("assets/Final_Fantasy_I_-_NES.woff2")
+                format("woff2");
+
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+
+            overflow: hidden;
+            background: black;
+        }
+
+        body {
+            cursor: url("assets/heart.png"), auto;
+            user-select: none;
+        }
+
+        #screen {
+            position: fixed;
+            inset: 0;
+
+            overflow: hidden;
+            background: black;
+
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+
+        #screen.visible {
+            opacity: 1;
+        }
+
+        #screen::after {
+            content: "";
+
+            position: absolute;
+            inset: 0;
+            z-index: 50;
+
+            pointer-events: none;
+
+            background:
+                repeating-linear-gradient(
+                    to bottom,
+                    transparent 0,
+                    transparent 2px,
+                    rgba(255,255,255,0.022) 3px,
+                    rgba(0,0,0,0.09) 4px
+                );
+
+            opacity: 0.48;
+            animation: scanlineDrift 8s linear infinite;
+        }
+        #darkFountainBackground {
+            cursor: url("assets/heart.png"), pointer;
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            overflow: hidden;
+            background: #000;
+
+            opacity: 0;
+            pointer-events: auto;
+
+            transition: opacity 1.8s ease;
+        }
+
+        #darkFountainBackground.visible {
+            opacity: 1;
+        }
+
+        #darkFountainBackground.hidden {
+            opacity: 0;
+        }
+
+        #darkFountainMain {
+            display: block;
+
+            width: 100%;
+            height: 100%;
+
+            object-fit: contain;
+            object-position: center;
+            filter:
+                brightness(0.52)
+                contrast(1.18)
+                saturate(0.86);
+
+            image-rendering: auto;
+
+            user-select: none;
+            -webkit-user-drag: none;
+            pointer-events: none;
+        }
+
+        #fountainPrompt {
+            position: absolute;
+            left: 50%;
+            bottom: 7%;
+            z-index: 5;
+
+            transform: translateX(-50%);
+
+            color: white;
+
+            font-family: "EramFont", monospace;
+            font-size: clamp(20px, 2vw, 32px);
+            letter-spacing: 0.14em;
+            white-space: nowrap;
+
+            opacity: 0.72;
+
+            text-shadow:
+                0 0 1px rgba(255,255,255,0.9),
+                0 0 4px rgba(255,255,255,0.25);
+
+            animation:
+                fountainPromptBlink 1.2s steps(1, end) infinite;
+        }
+
+        #fountainPrompt.hidden {
+            display: none;
+        }
+
+        #darkFountainShade {
+            position: absolute;
+            inset: 0;
+
+            background:
+                radial-gradient(
+                    ellipse at center,
+                    rgba(0, 0, 0, 0.04) 0%,
+                    rgba(0, 0, 0, 0.16) 68%,
+                    rgba(0, 0, 0, 0.40) 100%
+                );
+
+            pointer-events: none;
+        }
+        #eramDialogue {
+            position: absolute;
+            top: 4vh;
+            left: 2vw;
+            z-index: 10;
+
+            width: 94vw;
+            min-height: 1.5em;
+
+            opacity: 1;
+            transition: opacity 0.65s ease;
+
+            animation:
+                eramFlicker 0.16s infinite,
+                eramJitter 4s steps(1, end) infinite;
+        }
+
+        #eramDialogue.hidden {
+            opacity: 0;
+            animation: none;
+            pointer-events: none;
+        }
+
+        .eramLayer {
+            position: absolute;
+            top: 0;
+            left: 0;
+
+            width: 100%;
+            margin: 0;
+
+            font-family: "EramFont", monospace;
+            font-size: clamp(50px, 5vw, 75px);
+            font-weight: normal;
+
+            line-height: 1.5;
+            letter-spacing: 0.14em;
+
+            text-align: left;
+            white-space: pre-wrap;
+
+            pointer-events: none;
+        }
+
+        #eramRed,
+        #finalRed {
+            color: rgba(255, 42, 42, 0.42);
+            transform: translateX(-2px);
+            z-index: 1;
+        }
+
+        #eramCyan,
+        #finalCyan {
+            color: rgba(0, 205, 235, 0.34);
+            transform: translateX(2px);
+            z-index: 2;
+        }
+
+        #eramWhite,
+        #finalWhite {
+            color: rgba(236, 236, 236, 0.86);
+            z-index: 3;
+
+            text-shadow:
+                0 0 1px rgba(255,255,255,0.66),
+                0 0 3px rgba(255,255,255,0.12);
+        }
+
+@keyframes finalDoorStarMove {
+    0%,
+    100% {
+        transform:
+            translate3d(0, 0, 0)
+            scale(var(--scale));
+    }
+
+    25% {
+        transform:
+            translate3d(
+                calc(var(--drift-x) * 0.4),
+                -5px,
+                0
+            )
+            scale(var(--scale));
+    }
+
+    50% {
+        transform:
+            translate3d(
+                var(--drift-x),
+                3px,
+                0
+            )
+            scale(var(--scale));
+    }
+
+    75% {
+        transform:
+            translate3d(
+                calc(var(--drift-x) * -0.3),
+                6px,
+                0
+            )
+            scale(var(--scale));
+    }
+}
+
+@keyframes finalDoorStarGlow {
+    0%,
+    100% {
+        filter: brightness(0.72);
+    }
+
+    50% {
+        filter: brightness(1.25);
+    }
+}
+        #doorFade {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+
+            background: black;
+
+            opacity: 0;
+            pointer-events: none;
+
+            transition: opacity 2s ease;
+        }
+
+        #doorFade.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #finalMessage {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+
+            display: flex;
+            align-items: flex-start;
+            justify-content: flex-start;
+
+            padding-top: 4vh;
+            padding-left: 2vw;
+
+            background: black;
+
+            opacity: 0;
+            pointer-events: none;
+
+            transition: opacity 2s ease;
+        }
+
+        #finalMessage.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #finalMessageLayers {
+            position: relative;
+
+            width: 94vw;
+            min-height: 1.5em;
+
+            animation:
+                eramFlicker 0.16s infinite,
+                eramJitter 4s steps(1, end) infinite;
+        }
+        #whiteExit {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+
+            background: white;
+
+            opacity: 0;
+            pointer-events: none;
+
+            transition: opacity 2s ease;
+        }
+
+        #whiteExit.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        @keyframes eramFlicker {
+            0% {
+                filter:
+                    contrast(1.10)
+                    brightness(1)
+                    blur(0.18px);
+            }
+
+            22% {
+                filter:
+                    contrast(1.10)
+                    brightness(0.95)
+                    blur(0.18px);
+            }
+
+            48% {
+                filter:
+                    contrast(1.10)
+                    brightness(0.99)
+                    blur(0.18px);
+            }
+
+            74% {
+                filter:
+                    contrast(1.10)
+                    brightness(0.92)
+                    blur(0.18px);
+            }
+
+            100% {
+                filter:
+                    contrast(1.10)
+                    brightness(1)
+                    blur(0.18px);
+            }
+        }
+
+        @keyframes eramJitter {
+            0%,
+            95%,
+            100% {
+                transform: translate(0,0);
+            }
+
+            96% {
+                transform: translate(-1px,0);
+            }
+
+            97% {
+                transform: translate(1px,0);
+            }
+
+            98% {
+                transform: translate(0,1px);
+            }
+
+            99% {
+                transform: translate(-1px,0);
+            }
+        }
+
+        @keyframes fountainPromptBlink {
+            0%,
+            68% {
+                opacity: 0.72;
+            }
+
+            69%,
+            100% {
+                opacity: 0.25;
+            }
+        }
+
+        @keyframes scanlineDrift {
+            from {
+                background-position: 0 0;
+            }
+
+            to {
+                background-position: 0 4px;
+            }
+        }
+        #crtOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 5000;
+            pointer-events: none;
+            overflow: hidden;
+
+            background:
+                radial-gradient(
+                    ellipse at center,
+                    rgba(255,255,255,0) 54%,
+                    rgba(0,0,0,0.11) 80%,
+                    rgba(0,0,0,0.31) 100%
+                ),
+                repeating-linear-gradient(
+                    to bottom,
+                    rgba(255,255,255,0.020) 0,
+                    rgba(255,255,255,0.020) 1px,
+                    rgba(0,0,0,0.11) 2px,
+                    rgba(0,0,0,0.11) 4px
+                );
+
+            opacity: 0.76;
+
+            animation:
+                crtBrightness 4.8s ease-in-out infinite,
+                crtMicroJitter 7.5s steps(1,end) infinite;
+        }
+
+        #crtOverlay::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: -28%;
+            width: 100%;
+            height: 24%;
+
+            background:
+                linear-gradient(
+                    to bottom,
+                    transparent 0%,
+                    rgba(255,255,255,0.018) 35%,
+                    rgba(180,220,255,0.045) 50%,
+                    rgba(255,255,255,0.018) 65%,
+                    transparent 100%
+                );
+
+            mix-blend-mode: screen;
+            opacity: 0.62;
+            animation: crtScanBand 8.5s linear infinite;
+        }
+
+        #crtOverlay::after {
+            content: "";
+            position: absolute;
+            inset: -2%;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    rgba(255,0,0,0.020),
+                    rgba(0,255,255,0.014),
+                    rgba(0,0,255,0.020)
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(255,255,255,0.008) 0,
+                    rgba(255,255,255,0.008) 1px,
+                    transparent 1px,
+                    transparent 3px
+                );
+
+            mix-blend-mode: screen;
+            opacity: 0.56;
+
+            animation:
+                crtColorDrift 6.2s ease-in-out infinite,
+                crtNoiseShift 0.42s steps(2,end) infinite;
+        }
+
+        @keyframes crtScanBand {
+            from { transform: translateY(0); }
+            to { transform: translateY(560%); }
+        }
+
+        @keyframes crtBrightness {
+            0%, 100% { filter: brightness(1); }
+            45% { filter: brightness(0.985); }
+            52% { filter: brightness(1.018); }
+            68% { filter: brightness(0.992); }
+        }
+
+        @keyframes crtMicroJitter {
+            0%, 96%, 100% { transform: translate(0,0); }
+            97% { transform: translate(-0.6px,0); }
+            98% { transform: translate(0.7px,0); }
+            99% { transform: translate(0,0.5px); }
+        }
+
+        @keyframes crtColorDrift {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(1.2px); }
+        }
+
+        @keyframes crtNoiseShift {
+            0% { background-position: 0 0, 0 0; }
+            50% { background-position: 1px 0, 2px 0; }
+            100% { background-position: -1px 0, -2px 0; }
+        }
+
+        @keyframes finalDoorStarDrift {
+            0%, 100% {
+                transform:
+                    translate3d(0,0,0)
+                    scale(var(--scale));
+            }
+
+            25% {
+                transform:
+                    translate3d(
+                        calc(var(--drift-x) * 0.35),
+                        -5px,
+                        0
+                    )
+                    scale(var(--scale));
+            }
+
+            50% {
+                transform:
+                    translate3d(
+                        var(--drift-x),
+                        4px,
+                        0
+                    )
+                    scale(var(--scale));
+            }
+
+            75% {
+                transform:
+                    translate3d(
+                        calc(var(--drift-x) * -0.25),
+                        7px,
+                        0
+                    )
+                    scale(var(--scale));
+            }
+        }
+
+        @keyframes finalDoorStarPulse {
+            0%, 100% { filter: brightness(0.78); }
+            50% { filter: brightness(1.18); }
+        }
+
+#finalDoorScreen {
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 20;
+
+            display: none;
+
+            width: 100vw;
+            min-height: 100vh;
+
+            background: black;
+
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+#finalDoorScreen.visible {
+            opacity: 1;
+        }
+#finalDoorContainer {
+            position: relative;
+
+            width: 100vw;
+            height: calc(100vw * 9 / 16);
+            min-height: 100vh;
+
+            overflow: hidden;
+            background: black;
+        }
+#finalDoorImage {
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 1;
+
+            display: block;
+
+            width: 100vw;
+            height: auto;
+            max-width: none;
+
+            user-select: none;
+            -webkit-user-drag: none;
+            pointer-events: none;
+        }
+#finalDoorStarField {
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 6;
+
+            width: 100vw;
+            height: 34%;
+
+            overflow: hidden;
+            pointer-events: none;
+        }
+.finalDoorStarZone {
+            position: absolute;
+            top: 0;
+
+            height: 100%;
+            overflow: hidden;
+
+            pointer-events: none;
+        }
+#starZoneTop {
+            display: none;
+        }
+#starZoneLeft,
+        #starZoneCenterLeft {
+            left: 0;
+            width: 40%;
+        }
+#starZoneCenterRight,
+        #starZoneRight {
+            right: 0;
+            width: 40%;
+        }
+#finalDoorButton {
+            position: absolute;
+
+            left: 42.4%;
+            top: 5.4%;
+
+            width: 15.2%;
+            height: 40.5%;
+
+            z-index: 10;
+
+            padding: 0;
+            border: 0;
+            background: transparent;
+
+            cursor: url("assets/heart.png"), pointer;
+        }
+#finalDoorStarField {
+            position: absolute;
+            inset: 0;
+            z-index: 4;
+            pointer-events: none;
+        }
+.finalDoorStarZone {
+            position: absolute;
+            overflow: hidden;
+            pointer-events: none;
+        }
+#finalDoorStarZoneTop {
+            left: 3%;
+            top: 0;
+            width: 94%;
+            height: 5.5%;
+        }
+#finalDoorStarZoneLeft {
+            left: 4%;
+            top: 4%;
+            width: 29%;
+            height: 10%;
+        }
+#finalDoorStarZoneCenterLeft {
+            left: 33%;
+            top: 1%;
+            width: 12%;
+            height: 7%;
+        }
+#finalDoorStarZoneCenterRight {
+            left: 55%;
+            top: 1%;
+            width: 12%;
+            height: 7%;
+        }
+#finalDoorStarZoneRight {
+            left: 67%;
+            top: 4%;
+            width: 29%;
+            height: 10%;
+        }
+.finalDoorStar {
+            position: absolute;
+
+            width: var(--size);
+            height: var(--size);
+
+            object-fit: contain;
+            image-rendering: pixelated;
+
+            opacity: var(--opacity);
+
+            animation:
+                finalDoorStarDrift var(--duration) linear infinite,
+                finalDoorStarPulse var(--pulse) ease-in-out infinite;
+
+            animation-delay:
+                var(--delay),
+                var(--pulse-delay);
+
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+</style>
+</head>
+
+<body>
+
+    <main id="screen">
+
+        <div id="darkFountainBackground" aria-hidden="true">
+            <img
+                id="darkFountainMain"
+                src="assets/darkfountain.gif"
+                alt=""
+                draggable="false"
+            >
+
+            <div id="darkFountainShade"></div>
+
+            <div id="fountainPrompt">
+                CLICK TO CONTINUE
+            </div>
+        </div>
+
+        <div id="eramDialogue">
+            <p id="eramRed" class="eramLayer"></p>
+            <p id="eramCyan" class="eramLayer"></p>
+            <p id="eramWhite" class="eramLayer"></p>
+        </div>
+
+        <section id="finalDoorScreen">
+
+            <div id="finalDoorContainer">
+
+                <img
+                    id="finalDoorImage"
+                    src="assets/doors/2018doorfordagif.png?v=20260803-10"
+                    alt="2018 — Open the door."
+                    draggable="false"
+                >
+
+                <div id="finalDoorStarField" aria-hidden="true">
+                    <div id="starZoneTop" class="finalDoorStarZone"></div>
+                    <div id="starZoneLeft" class="finalDoorStarZone"></div>
+                    <div id="starZoneCenterLeft" class="finalDoorStarZone"></div>
+                    <div id="starZoneCenterRight" class="finalDoorStarZone"></div>
+                    <div id="starZoneRight" class="finalDoorStarZone"></div>
+                </div>
+
+                <button
+                    id="finalDoorButton"
+                    aria-label="Open the final door"
+                ></button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <div id="doorFade"></div>
+
+    <div id="finalMessage">
+
+        <div id="finalMessageLayers">
+            <p id="finalRed" class="eramLayer"></p>
+            <p id="finalCyan" class="eramLayer"></p>
+            <p id="finalWhite" class="eramLayer"></p>
+        </div>
+
+    </div>
+
+    <div id="whiteExit"></div>
+
+    <audio id="legendMusic" preload="auto" loop>
+        <source src="assets/music/thelegend.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="dtIntroNoise" preload="auto">
+        <source src="assets/sounds/dtintronoise.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="eramTalkingSound" preload="auto">
+        <source src="assets/sounds/eram-talking.wav" type="audio/wav">
+    </audio>
+
+    <audio id="eramFinishTalkingSound" preload="auto">
+        <source src="assets/sounds/eram-finish-talking.wav" type="audio/wav">
+    </audio>
+
+    <audio id="selectSound" preload="auto">
+        <source src="assets/sounds/select.wav" type="audio/wav">
+    </audio>
+
+    <script>
+const screen = document.getElementById("screen");
+
+const darkFountainBackground = document.getElementById("darkFountainBackground");
+
+const fountainPrompt = document.getElementById("fountainPrompt");
+
+const eramDialogue = document.getElementById("eramDialogue");
+
+const eramRed = document.getElementById("eramRed");
+
+const eramCyan = document.getElementById("eramCyan");
+
+const eramWhite = document.getElementById("eramWhite");
+
+const finalDoorScreen = document.getElementById("finalDoorScreen");
+
+const finalDoorButton = document.getElementById("finalDoorButton");
+
+const finalDoorStarField = document.getElementById("finalDoorStarField");
+
+const finalDoorStarZones = [ document.getElementById("starZoneTop"), document.getElementById("starZoneLeft"), document.getElementById("starZoneCenterLeft"), document.getElementById("starZoneCenterRight"), document.getElementById("starZoneRight") ];
+
+const doorFade = document.getElementById("doorFade");
+
+const finalMessage = document.getElementById("finalMessage");
+
+const finalRed = document.getElementById("finalRed");
+
+const finalCyan = document.getElementById("finalCyan");
+
+const finalWhite = document.getElementById("finalWhite");
+
+const whiteExit = document.getElementById("whiteExit");
+
+const legendMusic = document.getElementById("legendMusic");
+
+const dtIntroNoise = document.getElementById("dtIntroNoise");
+
+const eramTalkingSound = document.getElementById("eramTalkingSound");
+
+const eramFinishTalkingSound = document.getElementById("eramFinishTalkingSound");
+
+const selectSound = document.getElementById("selectSound");
+
+const messages = [ "Well...That's it!\nYou've seen all you need to see.", "Lopati...\nAren't you excited?\nAren't you happy?", "Everyone believes in you.\nEven when they shouldn't.\nIsn't that just perfect?", "For a long time, monsters never saw the sun.\nAnd you gave them that opportunity.\nHow wonderful...", "But if you soar too close to the sun,\nall they see is the shadow cast from\nyour wings.", "Even angels need algorithms, Lopati.\nShow us the modus to your power.", "And fall into sea." ];
+
+const finalLine = "The Legend of the Deltarune.";
+
+let messageIndex = 0;
+
+let characterIndex = 0;
+
+let typingTimer = null;
+
+let isTyping = false;
+
+let isTransitioning = false;
+
+let finalDoorActive = false;
+
+let finalMessageActive = false;
+
+let finalMessageFinished = false;
+
+let leavingPage = false;
+
+let isTimelineDragging = false;
+
+let timelineDragStartX = 0;
+
+let timelineScrollStartX = 0;
+
+let legendStarted = false;
+
+let musicStep = 0;
+
+let experienceStarted = false;
+
+const typingSpeed = 45;
+
+const musicLevels = [ 0.16, 0.25, 0.34, 0.43, 0.52, 0.62, 0.74, 0.86, 1.00 ];
+
+function buildFinalDoorStars() {
+    if (!finalDoorStarField || finalDoorStarField.dataset.built === "true") return;
+    finalDoorStarField.dataset.built = "true";
+    const starGroups = [ {
+        source: "assets/star1.png",
+        count: window.innerWidth >= 2200 ? 18 : 13,
+        minSize: 28,
+        maxSize: 44,
+        minOpacity: 0.62,
+        maxOpacity: 0.92
+    }, {
+        source: "assets/star2.png",
+        count: window.innerWidth >= 2200 ? 18 : 13,
+        minSize: 14,
+        maxSize: 22,
+        minOpacity: 0.52,
+        maxOpacity: 0.82
+    }, {
+        source: "assets/star3.png",
+        count: window.innerWidth >= 2200 ? 28 : 21,
+        minSize: 8,
+        maxSize: 14,
+        minOpacity: 0.42,
+        maxOpacity: 0.72
+    }, {
+        source: "assets/star4.png",
+        count: window.innerWidth >= 2200 ? 88 : 66,
+        minSize: 3,
+        maxSize: 8,
+        minOpacity: 0.26,
+        maxOpacity: 0.58
+    } ];
+    const zoneWeights = [ 0.18, 0.27, 0.14, 0.14, 0.27 ];
+    function chooseZone() {
+        const value = Math.random();
+        let total = 0;
+        for (let index = 0; index < zoneWeights.length; index++) {
+            total += zoneWeights[index];
+            if (value <= total) return finalDoorStarZones[index];
+        }
+        return finalDoorStarZones[finalDoorStarZones.length - 1];
+    }
+    starGroups.forEach(group => {
+        for (let index = 0; index < group.count; index++) {
+            const zone = chooseZone();
+            if (!zone) continue;
+            const star = document.createElement("img");
+            star.className = "finalDoorStar";
+            star.alt = "";
+            star.draggable = false;
+            star.src = group.source;
+            const size = Math.random() * (group.maxSize - group.minSize) + group.minSize;
+            const opacity = Math.random() * (group.maxOpacity - group.minOpacity) + group.minOpacity;
+            const driftX = Math.random() * 24 - 12;
+            const duration = Math.random() * 9 + 11;
+            const pulse = Math.random() * 3.2 + 2.6;
+            star.style.left = 3 + Math.random() * 91 + "%";
+            star.style.top = 3 + Math.random() * 87 + "%";
+            star.style.setProperty("--size", size.toFixed(1) + "px");
+            star.style.setProperty("--opacity", opacity.toFixed(2));
+            star.style.setProperty("--duration", duration.toFixed(2) + "s");
+            star.style.setProperty("--pulse", pulse.toFixed(2) + "s");
+            star.style.setProperty("--delay", (-Math.random() * duration).toFixed(2) + "s");
+            star.style.setProperty("--pulse-delay", (-Math.random() * pulse).toFixed(2) + "s");
+            star.style.setProperty("--drift-x", driftX.toFixed(1) + "px");
+            star.style.setProperty("--scale", (Math.random() * 0.18 + 0.91).toFixed(2));
+            zone.appendChild(star);
+        }
+    });
+}
+
+function safelyPlay(audio, volume = 1, restart = true) {
+    if (!audio) return;
+    audio.volume = volume;
+    if (restart) audio.currentTime = 0;
+    const attempt = audio.play();
+    if (attempt !== void 0) attempt.catch(() => {});
+}
+
+function fadeAudio(audio, targetVolume, duration, pauseWhenDone = false) {
+    if (!audio) return;
+    if (audio._fadeTimer) clearInterval(audio._fadeTimer);
+    const startVolume = audio.volume;
+    const difference = targetVolume - startVolume;
+    const startedAt = performance.now();
+    audio._fadeTimer = setInterval(() => {
+        const elapsed = performance.now() - startedAt;
+        const progress = Math.min(elapsed / duration, 1);
+        audio.volume = Math.max(0, Math.min(1, startVolume + difference * progress));
+        if (progress >= 1) {
+            clearInterval(audio._fadeTimer);
+            audio._fadeTimer = null;
+            if (pauseWhenDone && targetVolume === 0) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+        }
+    }, 40);
+}
+
+function startLegendMusic() {
+    if (legendStarted) return;
+    legendStarted = true;
+    legendMusic.pause();
+    legendMusic.currentTime = 0;
+    legendMusic.loop = true;
+    legendMusic.volume = 0;
+    const attempt = legendMusic.play();
+    if (attempt !== void 0) attempt.then(() => {
+        fadeAudio(legendMusic, musicLevels[0], 2200);
+    }).catch(() => {
+        legendStarted = false;
+    });
+}
+
+function ensureLegendMusic() {
+    if (!legendStarted) startLegendMusic();
+}
+
+function increaseLegendVolume() {
+    ensureLegendMusic();
+    musicStep = Math.min(musicStep + 1, musicLevels.length - 1);
+    fadeAudio(legendMusic, musicLevels[musicStep], 650);
+}
+
+function setLegendToFullVolume() {
+    ensureLegendMusic();
+    musicStep = musicLevels.length - 1;
+    fadeAudio(legendMusic, 1, 1200);
+}
+
+function playTalkingBleep(character) {
+    if (character === " " || character === "\n") return;
+    safelyPlay(eramTalkingSound, 0.58);
+}
+
+function clearDialogue() {
+    eramRed.textContent = "";
+    eramCyan.textContent = "";
+    eramWhite.textContent = "";
+}
+
+function addCharacter(character) {
+    eramRed.textContent += character;
+    eramCyan.textContent += character;
+    eramWhite.textContent += character;
+}
+
+function showCompleteMessage() {
+    clearTimeout(typingTimer);
+    const message = messages[messageIndex];
+    eramRed.textContent = message;
+    eramCyan.textContent = message;
+    eramWhite.textContent = message;
+    characterIndex = message.length;
+    isTyping = false;
+    safelyPlay(eramFinishTalkingSound, 0.72);
+}
+
+function typeCurrentMessage() {
+    clearTimeout(typingTimer);
+    clearDialogue();
+    eramDialogue.classList.remove("hidden");
+    characterIndex = 0;
+    isTyping = true;
+    const message = messages[messageIndex];
+    function typeNextCharacter() {
+        if (characterIndex >= message.length) {
+            isTyping = false;
+            safelyPlay(eramFinishTalkingSound, 0.72);
+            return;
+        }
+        const character = message[characterIndex];
+        addCharacter(character);
+        playTalkingBleep(character);
+        characterIndex++;
+        typingTimer = setTimeout(typeNextCharacter, typingSpeed);
+    }
+    typeNextCharacter();
+}
+
+function showFinalDoor() {
+    finalDoorActive = true;
+    setLegendToFullVolume();
+    eramDialogue.classList.add("hidden");
+    darkFountainBackground.classList.remove("visible");
+    darkFountainBackground.classList.add("hidden");
+    setTimeout(() => {
+        eramDialogue.style.display = "none";
+        darkFountainBackground.style.display = "none";
+        finalDoorScreen.style.display = "flex";
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                finalDoorScreen.classList.add("visible");
+            });
+        });
+    }, 1800);
+}
+
+function advanceDialogue() {
+    if (isTransitioning || finalDoorActive || finalMessageActive || leavingPage) return;
+    safelyPlay(selectSound, 0.85);
+    increaseLegendVolume();
+    if (isTyping) {
+        showCompleteMessage();
+        return;
+    }
+    isTransitioning = true;
+    eramDialogue.classList.add("hidden");
+    setTimeout(() => {
+        messageIndex++;
+        if (messageIndex >= messages.length) {
+            isTransitioning = false;
+            showFinalDoor();
+            return;
+        }
+        typeCurrentMessage();
+        isTransitioning = false;
+    }, 650);
+}
+
+function openFinalDoor() {
+    if (!finalDoorActive || leavingPage) return;
+    finalDoorActive = false;
+    safelyPlay(selectSound, 0.90);
+    finalDoorScreen.classList.remove("visible");
+    doorFade.classList.add("active");
+    setTimeout(() => {
+        finalDoorScreen.style.display = "none";
+        finalMessageActive = true;
+        typeFinalMessage(finalLine);
+    }, 2200);
+}
+
+function typeFinalMessage(message) {
+    finalRed.textContent = "";
+    finalCyan.textContent = "";
+    finalWhite.textContent = "";
+    finalMessage.classList.add("visible");
+    let index = 0;
+    function typeNextCharacter() {
+        if (index >= message.length) {
+            finalMessageFinished = true;
+            return;
+        }
+        const character = message[index];
+        finalRed.textContent += character;
+        finalCyan.textContent += character;
+        finalWhite.textContent += character;
+        playTalkingBleep(character);
+        index++;
+        setTimeout(typeNextCharacter, typingSpeed);
+    }
+    typeNextCharacter();
+}
+
+function leaveForPage6() {
+    if (!finalMessageFinished || leavingPage) return;
+    leavingPage = true;
+    safelyPlay(selectSound, 0.90);
+    safelyPlay(dtIntroNoise, 0.90);
+    fadeAudio(legendMusic, 0, 2000, true);
+    setTimeout(() => {
+        whiteExit.classList.add("active");
+    }, 150);
+    setTimeout(() => {
+        window.location.href = "page6.html";
+    }, 2300);
+}
+
+window.addEventListener("load", () => {
+    buildFinalDoorStars();
+    eramTalkingSound.load();
+    eramFinishTalkingSound.load();
+    selectSound.load();
+    legendMusic.load();
+    dtIntroNoise.load();
+    requestAnimationFrame(() => {
+        screen.classList.add("visible");
+        darkFountainBackground.classList.add("visible");
+    });
+});
+
+function beginPage5Experience() {
+    if (experienceStarted) return;
+    experienceStarted = true;
+    fountainPrompt.classList.add("hidden");
+    darkFountainBackground.style.pointerEvents = "none";
+    safelyPlay(selectSound, 0.85);
+    startLegendMusic();
+    eramTalkingSound.volume = 0;
+    const unlockAttempt = eramTalkingSound.play();
+    if (unlockAttempt !== void 0) unlockAttempt.then(() => {
+        eramTalkingSound.pause();
+        eramTalkingSound.currentTime = 0;
+        eramTalkingSound.volume = 0.58;
+    }).catch(() => {
+        eramTalkingSound.volume = 0.58;
+    });
+    setTimeout(() => {
+        typeCurrentMessage();
+    }, 1200);
+}
+
+darkFountainBackground.addEventListener("click", event => {
+    event.stopPropagation();
+    beginPage5Experience();
+});
+
+window.addEventListener("wheel", event => {
+    if (!finalDoorActive) return;
+    if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+        event.preventDefault();
+        window.scrollBy({
+            left: event.deltaY,
+            behavior: "auto"
+        });
+    }
+}, {
+    passive: false
+});
+
+window.addEventListener("mousedown", event => {
+    if (!finalDoorActive || event.button !== 0 || event.target === finalDoorButton) return;
+    isTimelineDragging = true;
+    timelineDragStartX = event.clientX;
+    timelineScrollStartX = window.scrollX;
+});
+
+window.addEventListener("mousemove", event => {
+    if (!isTimelineDragging) return;
+    window.scrollTo(timelineScrollStartX - (event.clientX - timelineDragStartX), 0);
+});
+
+window.addEventListener("mouseup", () => {
+    isTimelineDragging = false;
+});
+
+finalDoorButton.addEventListener("click", event => {
+    event.stopPropagation();
+    ensureLegendMusic();
+    openFinalDoor();
+});
+
+document.addEventListener("click", () => {
+    if (!experienceStarted) return;
+    ensureLegendMusic();
+    if (finalMessageActive && finalMessageFinished) {
+        leaveForPage6();
+        return;
+    }
+    advanceDialogue();
+});
+
+document.addEventListener("keydown", event => {
+    if (event.key !== "Enter" && event.key !== "z" && event.key !== "Z") return;
+    event.preventDefault();
+    if (!experienceStarted) {
+        beginPage5Experience();
+        return;
+    }
+    ensureLegendMusic();
+    if (finalMessageActive && finalMessageFinished) {
+        leaveForPage6();
+        return;
+    }
+    advanceDialogue();
+});
+</script>
+
+    <div id="crtOverlay" aria-hidden="true"></div>
+
+</body>
+</html>

@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>...</title>
+
+    <style>
+@font-face {
+            font-family: "Determination";
+            src:
+                url("assets/determination.woff2")
+                format("woff2");
+            font-display: swap;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+
+            background: black;
+        }
+
+        body {
+            overflow: hidden;
+
+            color: white;
+            cursor: url("assets/heart.png"), auto;
+            user-select: none;
+        }
+
+        button {
+            font: inherit;
+        }
+
+        #introScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+
+            display: grid;
+            place-items: center;
+
+            background: black;
+
+            opacity: 1;
+            pointer-events: auto;
+
+            transition: opacity 1.6s ease;
+        }
+
+        #introScreen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #introSoul {
+            width: clamp(48px, 4vw, 72px);
+            height: auto;
+
+            image-rendering: pixelated;
+
+            cursor: url("assets/heart.png"), pointer;
+
+            filter:
+                drop-shadow(
+                    0 0 6px
+                    rgba(255, 0, 0, 0.95)
+                )
+                drop-shadow(
+                    0 0 18px
+                    rgba(255, 0, 0, 0.55)
+                );
+
+            animation:
+                soulFloat 2.3s ease-in-out infinite,
+                soulGlow 1.8s ease-in-out infinite;
+
+            transition:
+                opacity 0.8s ease,
+                transform 0.8s ease;
+        }
+
+        #introSoul.leaving {
+            opacity: 0;
+            transform: scale(1.35);
+        }
+
+        @keyframes soulFloat {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-12px);
+            }
+        }
+
+        @keyframes soulGlow {
+            0%,
+            100% {
+                filter:
+                    drop-shadow(
+                        0 0 5px
+                        rgba(255, 0, 0, 0.80)
+                    )
+                    drop-shadow(
+                        0 0 14px
+                        rgba(255, 0, 0, 0.42)
+                    );
+            }
+
+            50% {
+                filter:
+                    drop-shadow(
+                        0 0 9px
+                        rgba(255, 70, 70, 1)
+                    )
+                    drop-shadow(
+                        0 0 26px
+                        rgba(255, 0, 0, 0.70)
+                    );
+            }
+        }
+
+        #endingScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 1200;
+            display: grid;
+            place-items: center;
+            background: black;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.8s ease;
+        }
+
+        #endingScreen.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #endingSavePoint {
+            width: clamp(58px, 7vw, 96px);
+            height: auto;
+            image-rendering: pixelated;
+            cursor: url("assets/heart.png"), pointer;
+            opacity: 0;
+            transform: scale(0.78);
+            filter: drop-shadow(0 0 5px rgba(255,255,255,.90)) drop-shadow(0 0 18px rgba(255,255,255,.65)) drop-shadow(0 0 24px rgba(255,255,255,.35));
+            transition: opacity 1.3s ease, transform 1.3s ease;
+            animation: endingStarFloat 2.4s ease-in-out infinite, endingStarGlow 1.5s ease-in-out infinite;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+
+        #endingScreen.visible #endingSavePoint {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        #endingSavePoint.leaving {
+            opacity: 0 !important;
+            transform: scale(1.45) !important;
+        }
+
+        @keyframes endingStarFloat {
+            0%,100% { margin-top: 0; }
+            50% { margin-top: -8px; }
+        }
+
+@keyframes endingStarGlow {
+    0%,
+    100% {
+        filter:
+            drop-shadow(
+                0 0 5px
+                rgba(255,255,255,.80)
+            )
+            drop-shadow(
+                0 0 14px
+                rgba(255,255,255,.45)
+            );
+    }
+
+    50% {
+        filter:
+            drop-shadow(
+                0 0 10px
+                rgba(255,255,255,1)
+            )
+            drop-shadow(
+                0 0 26px
+                rgba(255,255,255,.75)
+            )
+            drop-shadow(
+                0 0 40px
+                rgba(255,255,255,.35)
+            );
+    }
+}
+
+        #page {
+            position: fixed;
+            inset: 0;
+
+            overflow: hidden;
+            background: black;
+
+            opacity: 0;
+            pointer-events: none;
+
+            transition: opacity 2s ease;
+        }
+
+        #page.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #page.ending {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #world {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+
+            width: 1920px;
+            height: 1080px;
+
+            transform:
+                translate(-50%, -50%)
+                scale(var(--world-scale, 1));
+
+            transform-origin: center;
+            overflow: hidden;
+
+            background: black;
+        }
+
+        #sky {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            z-index: 1;
+
+            height: 680px;
+
+            overflow: hidden;
+            background: black;
+            -webkit-mask-image:
+                linear-gradient(
+                    to bottom,
+                    black 0%,
+                    black 72%,
+                    rgba(0, 0, 0, 0.72) 84%,
+                    transparent 100%
+                );
+
+            mask-image:
+                linear-gradient(
+                    to bottom,
+                    black 0%,
+                    black 72%,
+                    rgba(0, 0, 0, 0.72) 84%,
+                    transparent 100%
+                );
+        }
+
+        .starLayer {
+            position: absolute;
+            inset: -8%;
+
+            background-image:
+                url("assets/page7new/starsfromacoldplace.png");
+
+            background-repeat: repeat;
+            image-rendering: pixelated;
+
+            pointer-events: none;
+        }
+
+        #starsBack {
+            background-size: 460px 230px;
+
+            opacity: 0.18;
+
+            animation:
+                starsDriftBack 34s linear infinite;
+        }
+
+        #starsFront {
+            background-size: 680px 340px;
+
+            opacity: 0.27;
+
+            filter:
+                brightness(1.08)
+                drop-shadow(
+                    0 0 3px
+                    rgba(110, 130, 255, 0.18)
+                );
+
+            animation:
+                starsDriftFront 25s linear infinite;
+        }
+
+        @keyframes starsDriftBack {
+            from {
+                transform: translate3d(0, 0, 0);
+            }
+
+            to {
+                transform: translate3d(
+                    -320px,
+                    160px,
+                    0
+                );
+            }
+        }
+
+        @keyframes starsDriftFront {
+            from {
+                transform: translate3d(
+                    -80px,
+                    -40px,
+                    0
+                );
+            }
+
+            to {
+                transform: translate3d(
+                    400px,
+                    200px,
+                    0
+                );
+            }
+        }
+
+        #bridgeStrip {
+            position: absolute;
+            left: -80px;
+            right: -80px;
+            bottom: 210px;
+            z-index: 6;
+
+            height: 270px;
+
+            background-image:
+                url("assets/page7new/bridge.png");
+
+            background-repeat: repeat-x;
+            background-position: left bottom;
+            background-size: 200px 270px;
+
+            image-rendering: pixelated;
+
+            filter:
+                brightness(0.76)
+                saturate(0.88);
+        }
+
+        .tower {
+            position: absolute;
+            bottom: 210px;
+            z-index: 7;
+
+            width: 105px;
+            height: 760px;
+
+            image-rendering: pixelated;
+
+            filter:
+                brightness(0.82)
+                saturate(0.90);
+
+            pointer-events: none;
+        }
+
+        #towerLeft {
+            left: 8px;
+        }
+
+        #towerCenter {
+            left: 908px;
+        }
+
+        #towerRight {
+            right: 8px;
+        }
+
+        #fountain {
+            position: absolute;
+            left: 50%;
+            top: -18px;
+            z-index: 3;
+
+            width: 250px;
+            height: 870px;
+
+            object-fit: fill;
+
+            transform:
+                translateX(-50%)
+                scaleX(1.12);
+
+            transform-origin: top center;
+
+            image-rendering: pixelated;
+
+            opacity: 0.66;
+
+            filter:
+                brightness(0.60)
+                contrast(1.10)
+                saturate(0.84)
+                drop-shadow(
+                    0 0 6px
+                    rgba(72, 65, 220, 0.22)
+                );
+
+            pointer-events: none;
+        }
+
+        #landTop {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 245px;
+            z-index: 8;
+
+            height: 12px;
+
+            background-image:
+                url("assets/page7new/purplelandtop.png");
+
+            background-repeat: repeat-x;
+            background-size: 80px 12px;
+
+            image-rendering: pixelated;
+        }
+
+        #land {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 7;
+
+            height: 250px;
+
+            background-image:
+                url("assets/page7new/purplelandgif.gif");
+
+            background-repeat: repeat;
+            background-size: 40px 40px;
+
+            image-rendering: pixelated;
+        }
+
+        #tree {
+            position: absolute;
+            left: 18px;
+            bottom: 112px;
+            z-index: 10;
+
+            width: 420px;
+            height: auto;
+
+            image-rendering: pixelated;
+
+            filter:
+                saturate(1.15)
+                brightness(0.96)
+                drop-shadow(
+                    0 0 8px
+                    rgba(255, 0, 80, 0.26)
+                );
+
+            pointer-events: none;
+        }
+
+        #petalField {
+            position: absolute;
+            inset: 0;
+            z-index: 14;
+
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .petal {
+            position: absolute;
+            top: -40px;
+
+            width: var(--petal-width);
+            height: var(--petal-height);
+
+            background: #ff557f;
+
+            clip-path:
+                polygon(
+                    0 35%,
+                    38% 0,
+                    100% 22%,
+                    80% 74%,
+                    35% 100%
+                );
+
+            image-rendering: pixelated;
+
+            opacity: var(--petal-opacity);
+
+            filter:
+                drop-shadow(
+                    0 0 2px
+                    rgba(255, 60, 110, 0.45)
+                );
+
+            animation:
+                petalFall var(--petal-duration)
+                linear forwards;
+        }
+
+        @keyframes petalFall {
+            from {
+                transform:
+                    translate3d(0, -40px, 0)
+                    rotate(var(--start-rotation));
+            }
+
+            to {
+                transform:
+                    translate3d(
+                        var(--petal-drift),
+                        1160px,
+                        0
+                    )
+                    rotate(var(--end-rotation));
+            }
+        }
+
+        #messagePanel {
+            position: absolute;
+            left: 96px;
+            top: 72px;
+            z-index: 20;
+
+            width: 1728px;
+            max-height: none;
+
+            overflow: visible;
+
+            padding:
+                4px
+                20px
+                0
+                0;
+
+            color: white;
+
+            font-family:
+                "Determination",
+                "Courier New",
+                monospace;
+
+            font-size: 17px;
+            line-height: 1.36;
+            letter-spacing: 0.012em;
+
+            text-shadow:
+                2px 0 rgba(255, 50, 50, 0.34),
+                -2px 0 rgba(0, 210, 255, 0.30),
+                0 0 4px rgba(255, 255, 255, 0.16);
+        }
+
+        #messagePanel p {
+            margin:
+                0
+                0
+                11px;
+        }
+
+        #messagePanel strong {
+            color: #ff6a83;
+            font-weight: normal;
+
+            text-shadow:
+                0 0 5px
+                rgba(255, 50, 90, 0.42);
+        }
+
+        #crtOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 900;
+
+            pointer-events: none;
+
+            background:
+                repeating-linear-gradient(
+                    to bottom,
+                    rgba(255, 255, 255, 0.020) 0,
+                    rgba(255, 255, 255, 0.020) 1px,
+                    rgba(0, 0, 0, 0.10) 2px,
+                    rgba(0, 0, 0, 0.10) 4px
+                );
+
+            opacity: 0.58;
+
+            animation:
+                scanlineMove 7s linear infinite;
+        }
+
+        #vcrBand {
+            position: fixed;
+            left: 0;
+            top: -35%;
+            z-index: 901;
+
+            width: 100%;
+            height: 28%;
+
+            pointer-events: none;
+
+            background:
+                linear-gradient(
+                    to bottom,
+                    transparent,
+                    rgba(255, 255, 255, 0.020),
+                    rgba(255, 255, 255, 0.052),
+                    rgba(255, 255, 255, 0.018),
+                    transparent
+                );
+
+            opacity: 0.56;
+            filter: blur(5px);
+
+            animation:
+                vcrRoll 7.5s linear infinite;
+        }
+
+        @keyframes scanlineMove {
+            from {
+                background-position: 0 0;
+            }
+
+            to {
+                background-position: 0 12px;
+            }
+        }
+
+        @keyframes vcrRoll {
+            from {
+                transform:
+                    translateY(-35vh);
+            }
+
+            to {
+                transform:
+                    translateY(150vh);
+            }
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            #vcrBand {
+                display: none;
+            }
+
+            #crtOverlay {
+                animation: none;
+                opacity: 0.42;
+            }
+
+            #starsBack {
+                animation-duration: 36s;
+            }
+
+            #starsFront {
+                animation-duration: 24s;
+            }
+
+            #messagePanel {
+                text-shadow:
+                    1px 0 rgba(255, 50, 50, 0.24),
+                    -1px 0 rgba(0, 210, 255, 0.22);
+            }
+        }
+</style>
+</head>
+
+<body>
+    <section id="introScreen">
+        <img
+            id="introSoul"
+            src="assets/page7new/soul.png"
+            alt="Continue"
+            draggable="false"
+        >
+    </section>
+
+    <main id="page">
+        <div id="world">
+            <div id="sky">
+                <div
+                    id="starsBack"
+                    class="starLayer"
+                ></div>
+
+                <div
+                    id="starsFront"
+                    class="starLayer"
+                ></div>
+            </div>
+
+            <div id="bridgeStrip"></div>
+
+            <img
+                id="towerLeft"
+                class="tower"
+                src="assets/page7new/tower.png"
+                alt=""
+                draggable="false"
+            >
+
+            <img
+                id="towerCenter"
+                class="tower"
+                src="assets/page7new/tower.png"
+                alt=""
+                draggable="false"
+            >
+
+            <img
+                id="towerRight"
+                class="tower"
+                src="assets/page7new/tower.png"
+                alt=""
+                draggable="false"
+            >
+
+            <img
+                id="fountain"
+                src="assets/page7new/fountainpg5.gif"
+                alt=""
+                draggable="false"
+            >
+
+            <div id="land"></div>
+            <div id="landTop"></div>
+
+            <img
+                id="tree"
+                src="assets/page7new/redtree.gif"
+                alt=""
+                draggable="false"
+            >
+
+            <div id="petalField"></div>
+
+            <article id="messagePanel">
+                <p>yo. you made it.</p>
+
+                <p>i don't usually do things like this, but i thought it would be fun. i feel like things like this are the ultimate recommendation from a friend.</p>
+
+                <p>needless to say, undertale &amp; deltarune mean a lot to me.</p>
+
+                <p>i played undertale back in 2015 when i was 10. that's one of the only things i remember vividly.</p>
+
+                <p>when i was feeling any sort of sadness, anxiety, or confusion, i used to picture what it would be like if i had my own SOUL. scattered daydreams that feel like photographic memories now.</p>
+
+                <p>after playing undertale, the heart became my favorite shape, and i identified with it deeply. i don't even know how to explain the significance of the SOUL in my head. it's crazy.</p>
+
+                <p>Thomas Merton once said: “Art enables us to find ourselves and lose ourselves at the same time.” because of art, it’s possible to change.</p>
+
+                <p>i changed after playing the game, so i'm living proof that Thomas was right.</p>
+
+                <p>that was 10 years ago. 10 years later?</p>
+
+                <p>deltarune made my connection to the soul from 2015 feel like peanuts to the emotional weight it carries now.</p>
+
+                <p><strong>i hope</strong> that explains how important this game you're about to play really is.</p>
+
+                <p>anyway, enough yapping from me. i'll be able to answer any questions you have as you play the game.</p>
+
+                <p>but really,</p>
+
+                <p>i just wanna see if you actually change.</p>
+            </article>
+        </div>
+    </main>
+
+    <section id="endingScreen" aria-hidden="true">
+        <img id="endingSavePoint" src="assets/dtsavepoint.gif" alt="Return to the beginning" draggable="false">
+    </section>
+
+    <div id="crtOverlay"></div>
+    <div id="vcrBand"></div>
+
+    <audio id="selectSound" preload="auto">
+        <source
+            src="assets/sounds/select.wav"
+            type="audio/wav"
+        >
+    </audio>
+    
+    <audio id="scarletForestMusic" preload="auto" loop>
+    <source
+        src="assets/music/scarletforest.mp3"
+        type="audio/mpeg"
+    >
+</audio>
+
+    <script>
+const DESIGN_WIDTH = 1920;
+
+const DESIGN_HEIGHT = 1080;
+
+const introScreen = document.getElementById("introScreen");
+
+const introSoul = document.getElementById("introSoul");
+
+const page = document.getElementById("page");
+
+const world = document.getElementById("world");
+
+const petalField = document.getElementById("petalField");
+
+const selectSound = document.getElementById("selectSound");
+
+const scarletForestMusic = document.getElementById("scarletForestMusic");
+
+const endingScreen = document.getElementById("endingScreen");
+
+const endingSavePoint = document.getElementById("endingSavePoint");
+
+let pageStarted = false;
+
+let endingStarted = false;
+
+let returningHome = false;
+
+let petalInterval = null;
+
+function safelyPlay(audio, volume = 1) {
+    if (!audio) return;
+    audio.volume = volume;
+    audio.currentTime = 0;
+    const attempt = audio.play();
+    if (attempt !== void 0) attempt.catch(() => {});
+}
+
+function updateWorldScale() {
+    const scale = Math.max(window.innerWidth / DESIGN_WIDTH, window.innerHeight / DESIGN_HEIGHT);
+    world.style.setProperty("--world-scale", scale.toFixed(4));
+}
+
+function createPetal() {
+    if (!pageStarted) return;
+    const petal = document.createElement("span");
+    petal.className = "petal";
+    const width = Math.random() * 16 + 14;
+    const height = Math.random() * 7 + 7;
+    const duration = Math.random() * 2.8 + 2.8;
+    const drift = Math.random() * 560 - 280;
+    const startRotation = Math.random() * 180;
+    const endRotation = startRotation + Math.random() * 520 + 180;
+    petal.style.left = Math.random() * 102 - 2 + "%";
+    petal.style.setProperty("--petal-width", width.toFixed(1) + "px");
+    petal.style.setProperty("--petal-height", height.toFixed(1) + "px");
+    petal.style.setProperty("--petal-duration", duration.toFixed(2) + "s");
+    petal.style.setProperty("--petal-drift", drift.toFixed(0) + "px");
+    petal.style.setProperty("--start-rotation", startRotation.toFixed(0) + "deg");
+    petal.style.setProperty("--end-rotation", endRotation.toFixed(0) + "deg");
+    petal.style.setProperty("--petal-opacity", (Math.random() * 0.30 + 0.68).toFixed(2));
+    petalField.appendChild(petal);
+    setTimeout(() => petal.remove(), (duration + 0.5) * 1000);
+}
+
+function beginPetals() {
+    if (petalInterval !== null) return;
+    for (let index = 0; index < 18; index++) setTimeout(createPetal, index * 70);
+    petalInterval = setInterval(createPetal, 115);
+}
+
+function showEndingSavePoint() {
+    if (!pageStarted || endingStarted) return;
+    endingStarted = true;
+    safelyPlay(selectSound, 0.80);
+    if (petalInterval !== null) {
+        clearInterval(petalInterval);
+        petalInterval = null;
+    }
+    page.classList.add("ending");
+    setTimeout(() => {
+        endingScreen.classList.add("visible");
+        endingScreen.setAttribute("aria-hidden", "false");
+    }, 900);
+}
+
+function returnToPageOne(event) {
+    if (event) event.stopPropagation();
+    if (returningHome) return;
+    returningHome = true;
+    safelyPlay(selectSound, 0.85);
+    endingSavePoint.classList.add("leaving");
+    setTimeout(() => endingScreen.classList.remove("visible"), 500);
+    setTimeout(() => {
+        window.location.href = "index.html";
+    }, 1500);
+}
+
+function beginPage(event) {
+    if (event) event.stopPropagation();
+    if (pageStarted) return;
+    pageStarted = true;
+    safelyPlay(selectSound, 0.80);
+    introSoul.classList.add("leaving");
+    setTimeout(() => {
+        introScreen.classList.add("hidden");
+        page.classList.add("visible");
+        beginPetals();
+    }, 650);
+    setTimeout(() => {
+        introScreen.style.display = "none";
+    }, 2300);
+}
+
+introScreen.addEventListener("click", beginPage);
+
+page.addEventListener("click", showEndingSavePoint);
+
+endingSavePoint.addEventListener("click", returnToPageOne);
+
+document.addEventListener("keydown", event => {
+    const validKeys = [ "Enter", "z", "Z", " " ];
+    if (!validKeys.includes(event.key)) return;
+    event.preventDefault();
+    if (!pageStarted) {
+        beginPage(event);
+        return;
+    }
+    if (!endingStarted) {
+        showEndingSavePoint();
+        return;
+    }
+    if (!returningHome) returnToPageOne(event);
+});
+
+window.addEventListener("resize", updateWorldScale);
+
+window.addEventListener("load", updateWorldScale);
+</script>
+</body>
+
+</html>

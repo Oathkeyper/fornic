@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>for lopati. final part.</title>
+
+    <style>
+@font-face {
+            font-family: "EramFont";
+            src: url("assets/Final_Fantasy_I_-_NES.woff2")
+                 format("woff2");
+
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+
+            overflow: hidden;
+            background: black;
+            
+            cursor: url("assets/heart.png"), auto;
+        }
+
+@font-face {
+    font-family: "Determination";
+    src: url("assets/determination.woff2") format("woff2");
+
+    font-weight: normal;
+    font-style: normal;
+}
+        button {
+            font: inherit;
+        }
+
+        #page {
+            position: fixed;
+            inset: 0;
+
+            overflow: hidden;
+            background: black;
+
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+
+        #page.visible {
+            opacity: 1;
+        }
+#logoOpener {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: black;
+
+    opacity: 1;
+    pointer-events: auto;
+
+    transition: opacity 1.8s ease;
+}
+
+#logoOpener.hidden {
+    background: transparent;
+    opacity: 1;
+    pointer-events: none;
+}
+
+#logoOpener.playing {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#openerLogo {
+    width: clamp(180px, 24vw, 390px);
+    height: auto;
+
+    image-rendering: pixelated;
+
+    cursor: url("assets/heart.png"), pointer;
+
+    filter:
+        brightness(1.08)
+        drop-shadow(0 0 5px rgba(80, 110, 255, 0.86))
+        drop-shadow(0 0 18px rgba(45, 74, 255, 0.55));
+
+    animation:
+        openerFloat 2.8s ease-in-out infinite,
+        openerGlow 2.2s ease-in-out infinite;
+
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+@keyframes openerFloat {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+@keyframes openerGlow {
+    0%,
+    100% {
+        filter:
+            drop-shadow(0 0 3px rgba(110, 155, 255, 0.55))
+            drop-shadow(0 0 10px rgba(75, 108, 255, 0.30));
+    }
+
+    50% {
+        filter:
+            drop-shadow(0 0 6px rgba(150, 190, 255, 0.95))
+            drop-shadow(0 0 20px rgba(75, 108, 255, 0.60));
+    }
+}
+
+        #connectionScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            padding: 30px;
+            background: black;
+
+            opacity: 1;
+            transition: opacity 1.5s ease;
+        }
+
+        #connectionScreen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #connectionText {
+            position: absolute;
+            left: 50%;
+            top: 66%;
+
+            width: min(1250px, 94vw);
+            min-height: 120px;
+
+            transform: translateX(-50%);
+
+            text-align: center;
+        }
+
+        .eramLayer {
+            position: absolute;
+            inset: 0;
+
+            margin: 0;
+
+            font-family: "EramFont", monospace;
+            font-size: clamp(50px, 5vw, 75px);
+            line-height: 1.6;
+            letter-spacing: 0.14em;
+
+            white-space: pre-wrap;
+            pointer-events: none;
+        }
+
+        .redLayer {
+            color: rgba(255, 35, 35, 0.72);
+            transform: translateX(-2px);
+            z-index: 1;
+        }
+
+        .cyanLayer {
+            color: rgba(0, 220, 255, 0.72);
+            transform: translateX(2px);
+            z-index: 2;
+        }
+
+        .whiteLayer {
+            color: white;
+            z-index: 3;
+
+            text-shadow:
+                0 0 2px rgba(255, 255, 255, 0.8),
+                0 0 8px rgba(255, 255, 255, 0.4);
+        }
+
+        #startPrompt {
+            position: fixed;
+            left: 50%;
+            top: 78%;
+            z-index: 1100;
+
+            transform: translateX(-50%);
+
+            color: #4b6cff;
+            font-family: "Determination", monospace;
+            font-size: clamp(15px, 1.6vw, 21px);
+            letter-spacing: 0.12em;
+            text-align: center;
+
+            opacity: 0;
+            pointer-events: none;
+
+            transition: opacity 1s ease;
+        }
+
+#startPrompt.visible {
+    opacity: 1;
+    pointer-events: auto;
+
+    animation:
+        promptPulse 1.4s steps(1, end) infinite;
+}
+
+        @keyframes promptPulse {
+            0%,
+            45% {
+                visibility: visible;
+            }
+
+            46%,
+            100% {
+                visibility: hidden;
+            }
+        }
+
+        #backgroundLogo {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            z-index: 1;
+
+            width: clamp(180px, 24vw, 390px);
+            height: auto;
+
+            transform: translate(-50%, -50%);
+
+            opacity: 0;
+            filter:
+                brightness(0.72)
+                drop-shadow(0 0 8px rgba(55, 80, 255, 0.40))
+                drop-shadow(0 0 24px rgba(45, 60, 220, 0.25));
+
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-drag: none;
+
+            transition:
+                opacity 3.2s ease,
+                filter 3.2s ease;
+        }
+
+        #backgroundLogo.visible {
+            opacity: 0.20;
+        }
+
+        #backgroundLogo.bright {
+            opacity: 0.58;
+
+            filter:
+                brightness(1.05)
+                drop-shadow(0 0 8px rgba(90, 120, 255, 0.75))
+                drop-shadow(0 0 30px rgba(45, 65, 255, 0.46));
+        }
+
+        #backgroundLogo.ending {
+            opacity: 0;
+        }
+
+        #stage {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+
+            opacity: 0;
+            pointer-events: none;
+
+            transition: opacity 1.5s ease;
+        }
+
+        #stage.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #sectionViewport {
+            width: 100%;
+            height: 100%;
+
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            scrollbar-color: #4b6cff black;
+            scrollbar-width: thin;
+        }
+
+        #sectionViewport::-webkit-scrollbar {
+            width: 7px;
+        }
+
+        #sectionViewport::-webkit-scrollbar-track {
+            background: black;
+        }
+
+        #sectionViewport::-webkit-scrollbar-thumb {
+            background: #4b6cff;
+        }
+
+        #sectionContainer {
+            position: relative;
+            z-index: 2;
+
+            width: min(1000px, 92vw);
+            min-height: 100vh;
+
+            margin: 0 auto;
+            padding:
+                clamp(70px, 10vh, 120px)
+                0
+                clamp(120px, 18vh, 200px);
+
+            opacity: 1;
+            transition: opacity 0.8s ease;
+        }
+
+        #sectionContainer.hidden {
+            opacity: 0;
+        }
+
+.eramDialogue {
+    position: relative;
+    width: 100%;
+    min-height: 180px;
+}
+
+.eramDialogueLayer {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+
+    font-family: "EramFont", monospace;
+    font-size: clamp(50px, 5vw, 75px);
+    line-height: 1.8;
+    letter-spacing: .12em;
+
+    white-space: pre-wrap;
+}
+
+.eramRed {
+    color: rgba(255,35,35,.72);
+    transform: translateX(-2px);
+}
+
+.eramCyan {
+    color: rgba(0,220,255,.72);
+    transform: translateX(2px);
+}
+
+.eramWhite {
+    color: white;
+    text-shadow:
+        0 0 2px rgba(255,255,255,.8),
+        0 0 8px rgba(255,255,255,.4);
+}
+#statementText {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: calc(100vh - 240px);
+
+    color: #f26522;
+    font-family: "Determination", monospace;
+    font-size: clamp(18px, 2vw, 30px);
+
+    line-height: 1.8;
+    letter-spacing: clamp(4px, 0.8vw, 8px);
+    word-spacing: clamp(8px, 1.4vw, 15px);
+
+    text-align: center;
+    text-shadow:
+        0 0 8px rgba(242, 101, 34, 0.3);
+}
+
+.archive {
+    width: 100%;
+
+    color: #919191;
+    font-family: "Determination", monospace;
+    font-size: clamp(14px, 1.25vw, 18px);
+    line-height: 1.75;
+}
+
+        .archiveHeading {
+            margin-bottom: 42px;
+
+            color: #4b6cff;
+            font-size: clamp(18px, 2vw, 30px);
+            letter-spacing: 0.25em;
+            text-transform: lowercase;
+
+            text-shadow: 0 0 8px rgba(75, 108, 255, 0.4);
+        }
+
+        .tweet {
+            margin: 0 0 50px;
+            padding-left: 18px;
+
+            border-left: 1px solid #252525;
+        }
+
+        .tweetUser {
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        .darkTweet {
+            color: #d0d0d0;
+        }
+
+        .darkTweet .tweetUser {
+            color: #4b6cff;
+        }
+
+        .darkTweetText {
+            letter-spacing: 0.03em;
+        }
+
+        #continuePrompt {
+            position: fixed;
+            right: 28px;
+            bottom: 24px;
+            z-index: 100;
+
+            color: #4b6cff;
+            font-family: "Courier New", monospace;
+            font-size: 13px;
+            letter-spacing: 0.14em;
+
+            opacity: 0;
+            pointer-events: none;
+
+            transition: opacity 0.6s ease;
+        }
+#continuePrompt.visible {
+    opacity: 1;
+
+    animation:
+        promptPulse 1.4s steps(1, end) infinite;
+}
+
+        .snow {
+            position: fixed;
+            top: -40px;
+            z-index: 50;
+            width: var(--snow-size);
+            height: var(--snow-size);
+            object-fit: contain;
+            image-rendering: pixelated;
+            opacity: var(--snow-opacity);
+            user-select: none;
+            pointer-events: none;
+            -webkit-user-drag: none;
+            animation-name: fall;
+            animation-timing-function: linear;
+            animation-fill-mode: forwards;
+            transition: opacity 6.5s ease;
+        }
+
+        .snow.ending {
+            opacity: 0 !important;
+        }
+
+        @keyframes fall {
+            from {
+                transform: translate3d(0, 0, 0) rotate(0deg);
+            }
+
+            to {
+                transform: translate3d(var(--snow-drift), calc(100vh + 100px), 0) rotate(180deg);
+            }
+        }
+
+        .prophecyFall {
+            position: fixed;
+            top: -220px;
+            z-index: 4;
+
+            width: var(--prophecy-size);
+            height: auto;
+
+            object-fit: contain;
+            image-rendering: pixelated;
+
+            opacity: 0;
+
+            filter:
+                blur(var(--prophecy-blur))
+                brightness(var(--prophecy-brightness))
+                drop-shadow(
+                    0 0 6px
+                    rgba(70, 95, 255, 0.72)
+                )
+                drop-shadow(
+                    0 0 18px
+                    rgba(35, 55, 255, 0.48)
+                );
+
+            user-select: none;
+            pointer-events: none;
+            -webkit-user-drag: none;
+
+            animation:
+                prophecyFadeIn 1.15s ease forwards,
+                prophecyFall var(--prophecy-duration)
+                linear 1.15s forwards,
+                prophecyGlow 2.2s ease-in-out
+                1.15s infinite;
+
+            transition:
+                opacity 6.5s ease,
+                filter 6.5s ease;
+        }
+
+        .prophecyFall.ending {
+            opacity: 0 !important;
+
+            filter:
+                blur(calc(var(--prophecy-blur) + 5px))
+                brightness(0.35)
+                drop-shadow(
+                    0 0 2px
+                    rgba(55, 75, 255, 0.18)
+                ) !important;
+        }
+
+        @keyframes prophecyFadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: var(--prophecy-opacity);
+            }
+        }
+
+        @keyframes prophecyFall {
+            from {
+                transform:
+                    translate3d(0, -30px, 0)
+                    rotate(var(--prophecy-start-rotation));
+            }
+
+            to {
+                transform:
+                    translate3d(
+                        var(--prophecy-drift),
+                        calc(100vh + 340px),
+                        0
+                    )
+                    rotate(var(--prophecy-end-rotation));
+            }
+        }
+
+        @keyframes prophecyGlow {
+            0%,
+            100% {
+                filter:
+                    blur(var(--prophecy-blur))
+                    brightness(
+                        var(--prophecy-brightness)
+                    )
+                    drop-shadow(
+                        0 0 5px
+                        rgba(70, 95, 255, 0.58)
+                    )
+                    drop-shadow(
+                        0 0 14px
+                        rgba(35, 55, 255, 0.36)
+                    );
+            }
+
+            50% {
+                filter:
+                    blur(var(--prophecy-blur))
+                    brightness(1.12)
+                    drop-shadow(
+                        0 0 10px
+                        rgba(120, 145, 255, 0.92)
+                    )
+                    drop-shadow(
+                        0 0 28px
+                        rgba(55, 75, 255, 0.64)
+                    );
+            }
+        }
+
+        #audioError {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            z-index: 2000;
+
+            display: none;
+
+            color: #f26522;
+            font-size: 13px;
+        }
+
+        #finalFade {
+            position: fixed;
+            inset: 0;
+            z-index: 3000;
+            background: black;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 5s ease;
+        }
+
+        #finalFade.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #returnScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 4000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: black;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 2.5s ease;
+        }
+
+        #returnScreen.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #returnSavePoint {
+            display: block;
+            width: clamp(88px, 12vw, 170px);
+            height: auto;
+            image-rendering: pixelated;
+            cursor: url("assets/heart.png"), pointer;
+            filter:
+                drop-shadow(0 0 5px rgba(190,205,255,0.75))
+                drop-shadow(0 0 18px rgba(105,125,255,0.48));
+            user-select: none;
+            -webkit-user-drag: none;
+            animation:
+                returnPulse 1.35s ease-in-out infinite,
+                returnFloat 2.6s ease-in-out infinite;
+        }
+
+        @keyframes returnPulse {
+            0%, 100% {
+                filter:
+                    drop-shadow(0 0 4px rgba(190,205,255,0.60))
+                    drop-shadow(0 0 12px rgba(105,125,255,0.34));
+            }
+            50% {
+                filter:
+                    drop-shadow(0 0 8px rgba(225,232,255,0.95))
+                    drop-shadow(0 0 25px rgba(105,125,255,0.68));
+            }
+        }
+
+        @keyframes returnFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @media (max-width: 600px) {
+            #sectionContainer {
+                width: 88vw;
+                padding-top: 70px;
+            }
+
+            .tweet {
+                padding-left: 12px;
+            }
+
+            #continuePrompt {
+                right: 15px;
+                bottom: 15px;
+                font-size: 11px;
+            }
+
+            #connectionText {
+                min-height: 170px;
+            }
+        }
+</style>
+</head>
+
+<body>
+<div id="logoOpener">
+    <img
+        id="openerLogo"
+        src="assets/prophecy/prophecy2.png"
+        alt="Begin"
+        draggable="false"
+    >
+</div>
+
+    <div id="page">
+
+        <img
+            id="backgroundLogo"
+            src="assets/prophecy/prophecy2.png"
+            alt=""
+            draggable="false"
+        >
+
+        <main id="stage">
+
+            <div id="sectionViewport">
+
+                <div id="sectionContainer"></div>
+
+            </div>
+
+            <div id="continuePrompt">
+                CLICK / ENTER / Z
+            </div>
+
+        </main>
+
+    </div>
+
+    <div id="connectionScreen">
+
+        <div id="connectionText">
+
+            <p
+                id="connectionRed"
+                class="eramLayer redLayer"
+            ></p>
+
+            <p
+                id="connectionCyan"
+                class="eramLayer cyanLayer"
+            ></p>
+
+            <p
+                id="connectionWhite"
+                class="eramLayer whiteLayer"
+            ></p>
+
+        </div>
+
+    </div>
+
+    <div id="startPrompt">
+        CLICK TO PLAY THE PIANO
+    </div>
+
+    <audio
+        id="music"
+        preload="auto"
+        loop
+        playsinline
+    >
+        <source
+            src="assets/music/it-begins.mp3"
+            type="audio/mpeg"
+        >
+    </audio>
+
+    <audio id="eramTalkingSound" preload="auto">
+        <source src="assets/sounds/eram-talking.wav" type="audio/wav">
+    </audio>
+
+    <audio id="eramFinishTalkingSound" preload="auto">
+        <source src="assets/sounds/eram-finish-talking.wav" type="audio/wav">
+    </audio>
+
+    <audio id="selectSound" preload="auto">
+        <source src="assets/sounds/select.wav" type="audio/wav">
+    </audio>
+
+    <div id="audioError">
+        MUSIC COULD NOT PLAY.
+    </div>
+
+    <div id="finalFade"></div>
+
+    <div id="returnScreen">
+        <img
+            id="returnSavePoint"
+            src="assets/dtsavepoint.gif"
+            alt="Return to the beginning"
+            draggable="false"
+        >
+    </div>
+
+    <script>
+const logoOpener = document.getElementById("logoOpener");
+
+const openerLogo = document.getElementById("openerLogo");
+
+const page = document.getElementById("page");
+
+const connectionScreen = document.getElementById("connectionScreen");
+
+const connectionRed = document.getElementById("connectionRed");
+
+const connectionCyan = document.getElementById("connectionCyan");
+
+const connectionWhite = document.getElementById("connectionWhite");
+
+const startPrompt = document.getElementById("startPrompt");
+
+const backgroundLogo = document.getElementById("backgroundLogo");
+
+const stage = document.getElementById("stage");
+
+const sectionViewport = document.getElementById("sectionViewport");
+
+const sectionContainer = document.getElementById("sectionContainer");
+
+const continuePrompt = document.getElementById("continuePrompt");
+
+const music = document.getElementById("music");
+
+const audioError = document.getElementById("audioError");
+
+const finalFade = document.getElementById("finalFade");
+
+const returnScreen = document.getElementById("returnScreen");
+
+const returnSavePoint = document.getElementById("returnSavePoint");
+
+const eramTalkingSound = document.getElementById("eramTalkingSound");
+
+const eramFinishTalkingSound = document.getElementById("eramFinishTalkingSound");
+
+const selectSound = document.getElementById("selectSound");
+
+const connectionMessage = "THE CONNECTION HAS BEEN ESTABLISHED.";
+
+const sections = [ {
+    type: "narrator",
+    text: `You're almost there...\n\nYou must be feeling the excitement, too.`
+}, {
+    type: "narrator",
+    text: `But in reality, you're late!`
+}, {
+    type: "statement",
+    text: `WE BROKE THROUGH YOUR LAYER LONG AGO.`
+}, {
+    type: "archive",
+    html: `<section class="archive">\n\n    <div class="archiveHeading">\n        twitter. 2016\n    </div>\n\n    <article class="tweet">\n\n        <div class="tweetUser">\n            tobyfox @tobyfox — 31 Dec 2015\n        </div>\n\n        <div>\n            "The success of UNDERTALE has been incredible.\n            Thank you to the artists, the fans, and to my friends\n            for supporting me in 2015.\n\n            <br><br>\n\n            "But lately, something has left me feeling unsettled.\n            A burning, inexplicable feeling...\n\n            <br><br>\n\n            You could say,\n\n            <br><br>\n\n            "Its very nature is shrouded in darkness."\n        </div>\n\n    </article>\n\n</section>`
+}, {
+    type: "archive",
+    html: `<section class="archive">\n\n    <div class="archiveHeading">\n        twitter. 2018\n    </div>\n\n    <article class="tweet darkTweet">\n\n        <div class="tweetUser">\n            ______ @UnderTale — 30 Oct 2018\n        </div>\n\n        <div class="darkTweetText">\n            WELCOME.<br>\n            HAVE YOU BEEN LOOKING<br>\n            FOR ME?<br>\n\n            <br>\n\n            HOW WONDERFUL.<br>\n\n            <br>\n\n            I<br>\n            HAVE BEEN LOOKING FOR YOU<br>\n            AS WELL<br>\n\n            <br>\n\n            I HAVE SOMETHING<br>\n            SOMETHING I WANT TO SHOW YOU<br>\n\n            <br>\n\n            BUT<br>\n            IT IS NOT COMPLETE<br>\n            YET<br>\n\n            <br>\n\n            NO<br>\n            IT IS FAR FROM COMPLETE<br>\n\n            <br>\n\n            THUS<br>\n            I HAVE A SMALL FAVOUR TO ASK<br>\n            OF YOU.<br>\n\n            <br>\n\n            AT THAT TIME,<br>\n            I WILL ASK YOU A FEW QUESTIONS.<br>\n\n            <br>\n\n            THEN<br>\n            USING YOUR RESPONSES<br>\n            WE WILL APPROACH ITS REALIZATION.<br>\n\n            <br>\n\n            THANK YOU VERY MUCH FOR YOUR TIME.<br>\n\n            I WILL BE IN CONTACT AGAIN<br>\n            SOON.<br>\n\n            RETURN HERE IN [24] HOURS.\n        </div>\n\n    </article>\n\n</section>`
+}, {
+    type: "archive",
+    html: `<section class="archive">\n\n    <div class="archiveHeading">\n        twitter. 2018\n    </div>\n\n    <article class="tweet">\n\n        <div class="tweetUser">\n            tobyfox @tobyfox — 30 Oct 2018\n        </div>\n\n        <div>\n            "For those who completed UNDERTALE, it's really important\n            that you check @UNDERTALE 24 hours from now.\n\n            <br><br>\n\n            I want to make something new,\n            and it all begins with your feedback.\n\n            <br><br>\n\n            A Windows PC / MacOSX PC is needed."\n        </div>\n\n    </article>\n\n</section>`
+}, {
+    type: "archive",
+    html: `<section class="archive">\n\n    <div class="archiveHeading">\n        twitter. 2018\n    </div>\n\n    <article class="tweet darkTweet">\n\n        <div class="tweetUser">\n            ______ @UnderTale — 31 Oct 2018\n        </div>\n\n        <div class="darkTweetText">\n            THANK YOU<br>\n            FOR WAITING FOR SO LONG.<br>\n\n            <br>\n\n            AFTER ALL<br>\n            YOU AND I,<br>\n            WE HAVE BOTH BEEN WAITING<br>\n            SUCH A VERY LONG TIME.<br>\n\n            <br>\n\n            SO TO BE HERE<br>\n            FINALLY<br>\n            ON THE VERGE OF CONNECTION<br>\n\n            <br>\n\n            IS<br>\n            QUITE<br>\n            EXCITING<br>\n\n            <br>\n\n            I LOOK FORWARD<br>\n            TO CREATING<br>\n            A NEW FUTURE<br>\n            WITH YOU.<br>\n\n            <br>\n\n            NOW<br>\n            SHOW YOURSELF !<br>\n\n            <br>\n\n            DELTARUNE !<br>\n\n            <br>\n\n            deltarune.com<br>\n            deltarune.com<br>\n            deltarune.com\n        </div>\n\n    </article>\n\n</section>`
+}, {
+    type: "endingSequence",
+    lines: [ `This was the day when the gates had finally opened up.\nWe've been waiting for you ever since.`, `It seems like our world can have a profound impact in the lives of people like you.`, `Let's see...`, `I want to see if you actually change!`, `Don't be afraid,\nThis is gonna be great!`, `See you soon...` ]
+} ];
+
+let openerStarted = false;
+
+let connectionIndex = 0;
+
+let sectionIndex = 0;
+
+let experienceStarted = false;
+
+let sectionReady = false;
+
+let sectionTyping = false;
+
+let finalSequenceStarted = false;
+
+let endingSequenceActive = false;
+
+let snowInterval = null;
+
+let prophecyInterval = null;
+
+let narratorTimer = null;
+
+let musicFadeTimer = null;
+
+let archiveFinishImmediately = null;
+
+let returnScreenActive = false;
+
+let secretCodeBuffer = "";
+
+const secretCode = "723";
+
+const prophecyImages = [ "assets/prophecy/prophecy1.png", "assets/prophecy/prophecy3.png", "assets/prophecy/prophecy4.png", "assets/prophecy/prophecy5.png", "assets/prophecy/prophecy6.png", "assets/prophecy/prophecy7.png", "assets/prophecy/prophecy8.png", "assets/prophecy/prophecy9.png", "assets/prophecy/prophecy10.png", "assets/prophecy/prophecy11.png", "assets/prophecy/prophecy12.png", "assets/prophecy/prophecy13.png", "assets/prophecy/prophecy14.png", "assets/prophecy/prophecy15.png", "assets/prophecy/prophecy16.png" ];
+
+const connectionTypingSpeed = 65;
+
+const narratorTypingSpeed = 50;
+
+function safelyPlay(audio, volume = 1, restart = true) {
+    if (!audio) return;
+    audio.volume = volume;
+    if (restart) audio.currentTime = 0;
+    const attempt = audio.play();
+    if (attempt !== void 0) attempt.catch(() => {});
+}
+
+function playEramBleep(character) {
+    if (character === " " || character === "\n") return;
+    safelyPlay(eramTalkingSound, 0.58);
+}
+
+function playEramFinishSound() {
+    safelyPlay(eramFinishTalkingSound, 0.72);
+}
+
+function updateConnectionText(text) {
+    connectionRed.textContent = text;
+    connectionCyan.textContent = text;
+    connectionWhite.textContent = text;
+}
+
+function typeConnectionMessage() {
+    updateConnectionText("");
+    function typeNextCharacter() {
+        if (connectionIndex >= connectionMessage.length) {
+            playEramFinishSound();
+            setTimeout(() => {
+                startPrompt.classList.add("visible");
+            }, 900);
+            return;
+        }
+        const visibleText = connectionMessage.slice(0, connectionIndex + 1);
+        updateConnectionText(visibleText);
+        playEramBleep(connectionMessage[connectionIndex]);
+        connectionIndex++;
+        setTimeout(typeNextCharacter, connectionTypingSpeed);
+    }
+    typeNextCharacter();
+}
+
+function fadeMusicTo(targetVolume, duration, callback) {
+    clearInterval(musicFadeTimer);
+    const initialVolume = music.volume;
+    const difference = targetVolume - initialVolume;
+    const steps = 100;
+    const interval = duration / steps;
+    let currentStep = 0;
+    musicFadeTimer = setInterval(() => {
+        currentStep++;
+        music.volume = Math.max(0, Math.min(1, initialVolume + difference * (currentStep / steps)));
+        if (currentStep >= steps) {
+            clearInterval(musicFadeTimer);
+            music.volume = targetVolume;
+            if (callback) callback();
+        }
+    }, interval);
+}
+
+function startExperience() {
+    if (experienceStarted || !startPrompt.classList.contains("visible")) return;
+    experienceStarted = true;
+    safelyPlay(selectSound, 0.85);
+    startPrompt.classList.remove("visible");
+    backgroundLogo.classList.add("visible");
+    backgroundLogo.classList.add("bright");
+    logoOpener.classList.add("playing");
+    connectionScreen.classList.add("hidden");
+    page.classList.add("visible");
+    music.volume = 0;
+    const playAttempt = music.play();
+    if (playAttempt !== void 0) playAttempt.then(() => fadeMusicTo(1, 14000)).catch(error => {
+        audioError.style.display = "block";
+    });
+    setTimeout(() => {
+        connectionScreen.style.display = "none";
+        logoOpener.style.display = "none";
+    }, 1800);
+    setTimeout(() => {
+        backgroundLogo.classList.remove("bright");
+    }, 4500);
+    setTimeout(() => {
+        stage.classList.add("visible");
+        beginSnow();
+        beginProphecyRain();
+        showSection(0);
+    }, 5600);
+}
+
+function typeNarratorText(text) {
+    clearTimeout(narratorTimer);
+    sectionContainer.innerHTML = `\n<div class="eramDialogue">\n    <p class="eramDialogueLayer eramRed"></p>\n    <p class="eramDialogueLayer eramCyan"></p>\n    <p class="eramDialogueLayer eramWhite"></p>\n</div>\n`;
+    const red = sectionContainer.querySelector(".eramRed");
+    const cyan = sectionContainer.querySelector(".eramCyan");
+    const white = sectionContainer.querySelector(".eramWhite");
+    sectionTyping = true;
+    sectionReady = false;
+    let index = 0;
+    function typeNextCharacter() {
+        if (index >= text.length) {
+            sectionTyping = false;
+            playEramFinishSound();
+            if (sectionIndex === 0 || sectionIndex === 1) {
+                sectionReady = false;
+                setTimeout(() => {
+                    showSection(sectionIndex + 1);
+                }, 1800);
+            } else {
+                sectionReady = true;
+                continuePrompt.classList.add("visible");
+            }
+            return;
+        }
+        const visible = text.slice(0, index + 1);
+        red.textContent = visible;
+        cyan.textContent = visible;
+        white.textContent = visible;
+        const character = text[index];
+        playEramBleep(character);
+        index++;
+        let delay = narratorTypingSpeed;
+        if (character === "." || character === "!" || character === "?") delay = 300; else if (character === "," || character === ";") delay = 160;
+        narratorTimer = setTimeout(typeNextCharacter, delay);
+    }
+    typeNextCharacter();
+}
+
+function typeStatementText(text) {
+    clearTimeout(narratorTimer);
+    sectionContainer.innerHTML = `\n        <div class="eramDialogue statementDialogue">\n            <p class="eramDialogueLayer eramRed"></p>\n            <p class="eramDialogueLayer eramCyan"></p>\n            <p class="eramDialogueLayer eramWhite"></p>\n        </div>\n    `;
+    const red = sectionContainer.querySelector(".eramRed");
+    const cyan = sectionContainer.querySelector(".eramCyan");
+    const white = sectionContainer.querySelector(".eramWhite");
+    sectionTyping = true;
+    sectionReady = false;
+    let index = 0;
+    function typeNextCharacter() {
+        if (index >= text.length) {
+            sectionTyping = false;
+            sectionReady = true;
+            playEramFinishSound();
+            continuePrompt.classList.add("visible");
+            return;
+        }
+        const visible = text.slice(0, index + 1);
+        red.textContent = visible;
+        cyan.textContent = visible;
+        white.textContent = visible;
+        playEramBleep(text[index]);
+        index++;
+        narratorTimer = setTimeout(typeNextCharacter, narratorTypingSpeed);
+    }
+    typeNextCharacter();
+}
+
+function playEndingSequence(lines) {
+    endingSequenceActive = true;
+    sectionTyping = true;
+    sectionReady = false;
+    continuePrompt.classList.remove("visible");
+    let lineIndex = 0;
+    let lineFinished = false;
+    function typeCurrentEndingLine() {
+        const line = lines[lineIndex];
+        sectionContainer.innerHTML = `\n            <div class="eramDialogue">\n                <p class="eramDialogueLayer eramRed"></p>\n                <p class="eramDialogueLayer eramCyan"></p>\n                <p class="eramDialogueLayer eramWhite"></p>\n            </div>\n        `;
+        const red = sectionContainer.querySelector(".eramRed");
+        const cyan = sectionContainer.querySelector(".eramCyan");
+        const white = sectionContainer.querySelector(".eramWhite");
+        red.textContent = "";
+        cyan.textContent = "";
+        white.textContent = "";
+        sectionContainer.classList.remove("hidden");
+        let characterIndex = 0;
+        lineFinished = false;
+        sectionTyping = true;
+        sectionReady = false;
+        function finishCurrentLine() {
+            if (lineFinished) return;
+            lineFinished = true;
+            sectionTyping = false;
+            sectionReady = true;
+            playEramFinishSound();
+            if (line.includes("Don't be afraid") && line.includes("This is gonna be great")) beginEnvironmentalFade();
+            continuePrompt.classList.add("visible");
+        }
+        function typeNextCharacter() {
+            if (characterIndex >= line.length) {
+                finishCurrentLine();
+                return;
+            }
+            const visible = line.slice(0, characterIndex + 1);
+            red.textContent = visible;
+            cyan.textContent = visible;
+            white.textContent = visible;
+            const character = line[characterIndex];
+            playEramBleep(character);
+            characterIndex++;
+            let delay = narratorTypingSpeed;
+            if (character === "." || character === "!" || character === "?") delay = 300; else if (character === "," || character === ";") delay = 160;
+            narratorTimer = setTimeout(typeNextCharacter, delay);
+        }
+        archiveFinishImmediately = () => {
+            if (lineFinished) return;
+            clearTimeout(narratorTimer);
+            red.textContent = line;
+            cyan.textContent = line;
+            white.textContent = line;
+            finishCurrentLine();
+        };
+        typeNextCharacter();
+    }
+    window.advanceEndingLine = function() {
+        if (!endingSequenceActive) return false;
+        if (sectionTyping && archiveFinishImmediately) {
+            archiveFinishImmediately();
+            return true;
+        }
+        if (!sectionReady) return true;
+        continuePrompt.classList.remove("visible");
+        sectionReady = false;
+        if (lineIndex >= lines.length - 1) {
+            endingSequenceActive = false;
+            archiveFinishImmediately = null;
+            finishExperience();
+            return true;
+        }
+        sectionContainer.classList.add("hidden");
+        setTimeout(() => {
+            lineIndex++;
+            typeCurrentEndingLine();
+        }, 700);
+        return true;
+    };
+    typeCurrentEndingLine();
+}
+
+function showArchive(html) {
+    clearTimeout(narratorTimer);
+    archiveFinishImmediately = null;
+    sectionContainer.innerHTML = html;
+    const walker = document.createTreeWalker(sectionContainer, NodeFilter.SHOW_TEXT);
+    const textEntries = [];
+    let currentNode;
+    while (currentNode = walker.nextNode()) {
+        const cleanedText = currentNode.nodeValue.replace(/\s+/g, " ").trim();
+        if (cleanedText.length > 0) {
+            textEntries.push({
+                node: currentNode,
+                text: cleanedText
+            });
+            currentNode.nodeValue = "";
+        }
+    }
+    sectionTyping = true;
+    sectionReady = false;
+    let entryIndex = 0;
+    let characterIndex = 0;
+    let archiveFinished = false;
+    function finishArchive() {
+        if (archiveFinished) return;
+        archiveFinished = true;
+        clearTimeout(narratorTimer);
+        textEntries.forEach(entry => {
+            entry.node.nodeValue = entry.text;
+        });
+        sectionTyping = false;
+        sectionReady = true;
+        archiveFinishImmediately = null;
+        continuePrompt.classList.add("visible");
+    }
+    archiveFinishImmediately = finishArchive;
+    function typeNextCharacter() {
+        if (archiveFinished) return;
+        if (entryIndex >= textEntries.length) {
+            finishArchive();
+            return;
+        }
+        const entry = textEntries[entryIndex];
+        if (characterIndex >= entry.text.length) {
+            entryIndex++;
+            characterIndex = 0;
+            narratorTimer = setTimeout(typeNextCharacter, 80);
+            return;
+        }
+        entry.node.nodeValue += entry.text[characterIndex];
+        characterIndex++;
+        narratorTimer = setTimeout(typeNextCharacter, 14);
+    }
+    typeNextCharacter();
+}
+
+function showSection(index) {
+    sectionIndex = index;
+    sectionReady = false;
+    continuePrompt.classList.remove("visible");
+    sectionContainer.classList.add("hidden");
+    setTimeout(() => {
+        sectionViewport.scrollTop = 0;
+        const section = sections[index];
+        if (section.type === "narrator") typeNarratorText(section.text); else if (section.type === "statement") typeStatementText(section.text); else if (section.type === "endingSequence") playEndingSequence(section.lines); else showArchive(section.html);
+        sectionContainer.classList.remove("hidden");
+    }, 800);
+}
+
+function completeNarratorImmediately() {
+    const section = sections[sectionIndex];
+    if (!sectionTyping) return false;
+    if (section.type !== "narrator" && section.type !== "statement") return false;
+    clearTimeout(narratorTimer);
+    const red = sectionContainer.querySelector(".eramRed");
+    const cyan = sectionContainer.querySelector(".eramCyan");
+    const white = sectionContainer.querySelector(".eramWhite");
+    red.textContent = section.text;
+    cyan.textContent = section.text;
+    white.textContent = section.text;
+    sectionTyping = false;
+    sectionReady = true;
+    continuePrompt.classList.add("visible");
+    return true;
+}
+
+function advanceSection() {
+    if (!experienceStarted || finalSequenceStarted) return;
+    if (endingSequenceActive && typeof window.advanceEndingLine === "function") {
+        window.advanceEndingLine();
+        return;
+    }
+    if (sectionTyping) {
+        const section = sections[sectionIndex];
+        if (section.type === "archive" && archiveFinishImmediately) {
+            archiveFinishImmediately();
+            return;
+        }
+        completeNarratorImmediately();
+        return;
+    }
+    if (!sectionReady) return;
+    sectionReady = false;
+    continuePrompt.classList.remove("visible");
+    if (sectionIndex >= sections.length - 1) {
+        finishExperience();
+        return;
+    }
+    showSection(sectionIndex + 1);
+}
+
+function beginEnvironmentalFade() {
+    if (snowInterval !== null) {
+        clearInterval(snowInterval);
+        snowInterval = null;
+    }
+    if (prophecyInterval !== null) {
+        clearInterval(prophecyInterval);
+        prophecyInterval = null;
+    }
+    document.querySelectorAll(".snow").forEach(snowflake => {
+        snowflake.classList.add("ending");
+    });
+    document.querySelectorAll(".prophecyFall").forEach(symbol => {
+        symbol.classList.add("ending");
+    });
+}
+
+function finishExperience() {
+    if (finalSequenceStarted) return;
+    finalSequenceStarted = true;
+    continuePrompt.classList.remove("visible");
+    sectionContainer.classList.add("hidden");
+    stage.classList.remove("visible");
+    backgroundLogo.classList.add("ending");
+    beginEnvironmentalFade();
+    fadeMusicTo(0, 6000, () => {
+        music.pause();
+        music.currentTime = 0;
+    });
+    setTimeout(() => finalFade.classList.add("active"), 900);
+    setTimeout(() => {
+        returnScreenActive = true;
+        returnScreen.classList.add("visible");
+    }, 6800);
+}
+
+function createProphecySymbol() {
+    if (finalSequenceStarted) return;
+    const symbol = document.createElement("img");
+    symbol.className = "prophecyFall";
+    symbol.src = prophecyImages[Math.floor(Math.random() * prophecyImages.length)];
+    symbol.alt = "";
+    symbol.draggable = false;
+    const size = Math.random() * 150 + 70;
+    const opacity = Math.random() * 0.28 + 0.13;
+    const duration = Math.random() * 8 + 7;
+    const drift = Math.random() * 240 - 120;
+    const startRotation = Math.random() * 20 - 10;
+    const endRotation = startRotation + (Math.random() * 80 - 40);
+    symbol.style.left = Math.random() * 96 - 3 + "vw";
+    symbol.style.setProperty("--prophecy-size", size.toFixed(0) + "px");
+    symbol.style.setProperty("--prophecy-opacity", opacity.toFixed(2));
+    symbol.style.setProperty("--prophecy-duration", duration.toFixed(2) + "s");
+    symbol.style.setProperty("--prophecy-drift", drift.toFixed(0) + "px");
+    symbol.style.setProperty("--prophecy-start-rotation", startRotation.toFixed(1) + "deg");
+    symbol.style.setProperty("--prophecy-end-rotation", endRotation.toFixed(1) + "deg");
+    symbol.style.setProperty("--prophecy-brightness", (Math.random() * 0.28 + 0.55).toFixed(2));
+    symbol.style.setProperty("--prophecy-blur", (Math.random() * 2.4 + 1.2).toFixed(1) + "px");
+    document.body.appendChild(symbol);
+    setTimeout(() => symbol.remove(), (duration + 1.5) * 1000);
+}
+
+function beginProphecyRain() {
+    if (prophecyInterval !== null) return;
+    for (let index = 0; index < 10; index++) setTimeout(createProphecySymbol, index * 120);
+    prophecyInterval = setInterval(createProphecySymbol, 310);
+}
+
+function createSnowflake() {
+    if (finalSequenceStarted) return;
+    const snowflake = document.createElement("img");
+    snowflake.className = "snow";
+    snowflake.src = "assets/snowsprite.png";
+    snowflake.alt = "";
+    snowflake.draggable = false;
+    snowflake.style.left = Math.random() * 100 + "vw";
+    snowflake.style.setProperty("--snow-opacity", (Math.random() * 0.55 + 0.30).toFixed(2));
+    snowflake.style.setProperty("--snow-size", (Math.random() * 18 + 10).toFixed(0) + "px");
+    snowflake.style.setProperty("--snow-drift", (Math.random() * 80 - 40).toFixed(0) + "px");
+    snowflake.style.animationDuration = (Math.random() * 3.5 + 3.5).toFixed(2) + "s";
+    document.body.appendChild(snowflake);
+    setTimeout(() => snowflake.remove(), 13000);
+}
+
+function beginSnow() {
+    if (snowInterval !== null) return;
+    snowInterval = setInterval(createSnowflake, 145);
+}
+
+document.addEventListener("click", event => {
+    if (returnScreenActive) {
+        if (event.target === returnSavePoint) {
+            safelyPlay(selectSound, 0.90);
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 220);
+        }
+        return;
+    }
+    if (!openerStarted) {
+        if (event.target !== openerLogo) return;
+        openerStarted = true;
+        safelyPlay(selectSound, 0.85);
+        eramTalkingSound.volume = 0;
+        const unlockAttempt = eramTalkingSound.play();
+        if (unlockAttempt !== void 0) unlockAttempt.then(() => {
+            eramTalkingSound.pause();
+            eramTalkingSound.currentTime = 0;
+            eramTalkingSound.volume = 0.58;
+        }).catch(() => {
+            eramTalkingSound.volume = 0.58;
+        });
+        logoOpener.classList.add("hidden");
+        setTimeout(() => {
+            typeConnectionMessage();
+        }, 1800);
+        return;
+    }
+    safelyPlay(selectSound, 0.80);
+    if (!experienceStarted) {
+        startExperience();
+        return;
+    }
+    advanceSection();
+});
+
+document.addEventListener("keydown", event => {
+    if (returnScreenActive) {
+        if (/^[0-9]$/.test(event.key)) {
+            secretCodeBuffer = (secretCodeBuffer + event.key).slice(-secretCode.length);
+            if (secretCodeBuffer === secretCode) {
+                safelyPlay(selectSound, 0.90);
+                returnScreen.classList.remove("visible");
+                setTimeout(() => {
+                    window.location.href = "page7.html";
+                }, 900);
+            }
+        }
+        return;
+    }
+    if (event.key !== "Enter" && event.key !== "z" && event.key !== "Z") return;
+    event.preventDefault();
+    if (!openerStarted) return;
+    safelyPlay(selectSound, 0.80);
+    if (!experienceStarted) {
+        startExperience();
+        return;
+    }
+    advanceSection();
+});
+
+window.addEventListener("load", () => {
+    eramTalkingSound.load();
+    eramFinishTalkingSound.load();
+    selectSound.load();
+    music.load();
+    page.classList.remove("visible");
+});
+</script>
+
+</body>
+
+</html>

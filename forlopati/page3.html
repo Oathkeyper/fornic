@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>...</title>
+<style>
+@font-face{font-family:"EramFont";src:url("assets/Final_Fantasy_I_-_NES.woff2") format("woff2");font-weight:normal;font-style:normal;font-display:swap}
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:black}body{cursor:url("assets/heart.png"),auto;user-select:none}
+#screen{position:fixed;inset:0;background:black;opacity:0;transition:opacity 2s ease}#screen.visible{opacity:1}
+#eramDialogue{position:absolute;top:4vh;left:2vw;width:94vw;opacity:1;transition:opacity .65s ease}#eramDialogue.hidden{opacity:0}
+.eramLayer{position:absolute;top:0;left:0;width:100%;margin:0;font-family:"EramFont",monospace;font-size:clamp(50px,5vw,75px);font-weight:normal;line-height:1.5;letter-spacing:.14em;text-align:left;white-space:pre-wrap;pointer-events:none}
+#eramRed{
+    color:rgba(255,35,35,.48);
+    transform:translateX(-2px);
+    z-index:1
+}
+#eramCyan{
+    color:rgba(0,210,255,.44);
+    transform:translateX(2px);
+    z-index:2
+}
+#eramWhite{
+    color:rgba(242,242,242,.90);
+    z-index:3;
+    text-shadow:
+        0 0 1px rgba(255,255,255,.78),
+        0 0 3px rgba(255,255,255,.18)
+}
+#whiteTransition{position:fixed;inset:0;z-index:9999;background:white;opacity:0;pointer-events:none;transition:opacity 2s ease}#whiteTransition.active{opacity:1;pointer-events:auto}
+</style>
+</head>
+<body>
+<main id="screen"><div id="eramDialogue"><p id="eramRed" class="eramLayer"></p><p id="eramCyan" class="eramLayer"></p><p id="eramWhite" class="eramLayer"></p></div></main>
+<div id="whiteTransition"></div>
+<audio id="eramMusic" preload="auto" loop><source src="assets/music/eram.mp3" type="audio/mpeg"></audio>
+<audio id="determinationMusic" preload="auto" loop><source src="assets/music/determinationpt1.mp3" type="audio/mpeg"></audio>
+<audio id="eramTalkingSound" preload="auto"><source src="assets/sounds/eram-talking.wav" type="audio/wav"></audio>
+<audio id="eramFinishTalkingSound" preload="auto"><source src="assets/sounds/eram-finish-talking.wav" type="audio/wav"></audio>
+<audio id="selectSound" preload="auto"><source src="assets/sounds/select.wav" type="audio/wav"></audio>
+<script>
+const screen = document.getElementById("screen"), eramDialogue = document.getElementById("eramDialogue"), eramRed = document.getElementById("eramRed"), eramCyan = document.getElementById("eramCyan"), eramWhite = document.getElementById("eramWhite"), whiteTransition = document.getElementById("whiteTransition"), eramMusic = document.getElementById("eramMusic"), determinationMusic = document.getElementById("determinationMusic"), eramTalkingSound = document.getElementById("eramTalkingSound"), eramFinishTalkingSound = document.getElementById("eramFinishTalkingSound"), selectSound = document.getElementById("selectSound");
+
+const messages = [ "How boring. I'm getting bored.\nIsn't this lame, Lopati?", "...\n...?\nFine.", "I'll admit that you're right\nto be curious.\nI forgot you were a game designer.", "Unlike how I am with the other human...\nI guess I don't know you very well.", "I tried to ask HIM about you.\nHe told me he didn't know you too well\neither.", "...\nYou know...\nSometimes, I like it better like that.", "This feeling...\nThis confusion mixed with excitement...\n\nThe attention we have of each other,\nso heavy and uniquely intense that it\nrivals the highest forms of worship...", "It could convince anyone\nthat, sometimes?\n\nIt's better to be in the dark\nabout things.", "Let me show you\nwhat the shadows used to look like." ];
+
+let messageIndex = 0, characterIndex = 0, typingTimer = null, isTyping = false, isTransitioning = false, leavingPage = false, eramMusicStarted = false, determinationStarted = false, eramFadeStarted = false;
+
+const typingSpeed = 45;
+
+function safelyPlay(audio, volume = 1, restart = true) {
+    if (!audio) return;
+    audio.volume = volume;
+    if (restart) audio.currentTime = 0;
+    const attempt = audio.play();
+    if (attempt !== void 0) attempt.catch(() => {});
+}
+
+function fadeAudio(audio, targetVolume, duration, pauseWhenDone = false) {
+    if (!audio) return;
+    if (audio._fadeTimer) clearInterval(audio._fadeTimer);
+    const startVolume = audio.volume, difference = targetVolume - startVolume, startedAt = performance.now();
+    audio._fadeTimer = setInterval(() => {
+        const elapsed = performance.now() - startedAt, progress = Math.min(elapsed / duration, 1);
+        audio.volume = Math.max(0, Math.min(1, startVolume + difference * progress));
+        if (progress >= 1) {
+            clearInterval(audio._fadeTimer);
+            audio._fadeTimer = null;
+            if (pauseWhenDone && targetVolume === 0) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+        }
+    }, 40);
+}
+
+function startEramMusic() {
+    if (eramMusicStarted) return;
+    eramMusicStarted = true;
+    eramMusic.pause();
+    eramMusic.currentTime = 0;
+    eramMusic.loop = true;
+    eramMusic.volume = 0;
+    const attempt = eramMusic.play();
+    if (attempt !== void 0) attempt.then(() => fadeAudio(eramMusic, .5, 3500)).catch(() => {
+        eramMusicStarted = false;
+    });
+}
+
+function fadeOutEramMusic() {
+    if (eramFadeStarted) return;
+    eramFadeStarted = true;
+    fadeAudio(eramMusic, 0, 3200, true);
+}
+
+function startDeterminationMusic() {
+    if (determinationStarted) return;
+    determinationStarted = true;
+    determinationMusic.pause();
+    determinationMusic.currentTime = 0;
+    determinationMusic.loop = true;
+    determinationMusic.volume = 0;
+    const attempt = determinationMusic.play();
+    if (attempt !== void 0) attempt.then(() => fadeAudio(determinationMusic, .55, 4500)).catch(() => {
+        determinationStarted = false;
+    });
+}
+
+function playTalkingBleep(character) {
+    if (character === " " || character === "\n") return;
+    safelyPlay(eramTalkingSound, .58);
+}
+
+function clearDialogue() {
+    eramRed.textContent = "";
+    eramCyan.textContent = "";
+    eramWhite.textContent = "";
+}
+
+function addCharacter(character) {
+    eramRed.textContent += character;
+    eramCyan.textContent += character;
+    eramWhite.textContent += character;
+}
+
+function showCompleteMessage() {
+    const message = messages[messageIndex];
+    eramRed.textContent = message;
+    eramCyan.textContent = message;
+    eramWhite.textContent = message;
+    characterIndex = message.length;
+    isTyping = false;
+}
+
+function prepareMusicForMessage() {
+    if (messageIndex === 5) fadeOutEramMusic();
+    if (messageIndex === 6) startDeterminationMusic();
+}
+
+function typeCurrentMessage() {
+    clearTimeout(typingTimer);
+    clearDialogue();
+    eramDialogue.classList.remove("hidden");
+    characterIndex = 0;
+    isTyping = true;
+    prepareMusicForMessage();
+    const message = messages[messageIndex];
+    function typeNextCharacter() {
+        if (characterIndex >= message.length) {
+            isTyping = false;
+            safelyPlay(eramFinishTalkingSound, .72);
+            return;
+        }
+        const character = message[characterIndex];
+        addCharacter(character);
+        playTalkingBleep(character);
+        characterIndex++;
+        typingTimer = setTimeout(typeNextCharacter, typingSpeed);
+    }
+    typeNextCharacter();
+}
+
+function leaveForPage4() {
+    if (leavingPage) return;
+    leavingPage = true;
+    eramDialogue.classList.add("hidden");
+    fadeAudio(determinationMusic, 0, 1700, true);
+    fadeAudio(eramMusic, 0, 1700, true);
+    setTimeout(() => whiteTransition.classList.add("active"), 350);
+    setTimeout(() => {
+        window.location.href = "page4.html";
+    }, 2450);
+}
+
+function advanceDialogue() {
+    if (isTransitioning || leavingPage) return;
+    safelyPlay(selectSound, .85);
+    if (isTyping) {
+        clearTimeout(typingTimer);
+        showCompleteMessage();
+        return;
+    }
+    isTransitioning = true;
+    eramDialogue.classList.add("hidden");
+    setTimeout(() => {
+        messageIndex++;
+        if (messageIndex >= messages.length) {
+            leaveForPage4();
+            return;
+        }
+        typeCurrentMessage();
+        isTransitioning = false;
+    }, 650);
+}
+
+window.addEventListener("load", () => {
+    requestAnimationFrame(() => screen.classList.add("visible"));
+    startEramMusic();
+    setTimeout(() => typeCurrentMessage(), 1500);
+});
+
+function ensureMusicStarted() {
+    if (!eramMusicStarted && messageIndex < 5) startEramMusic();
+}
+
+document.addEventListener("click", () => {
+    ensureMusicStarted();
+    advanceDialogue();
+});
+
+document.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === "z" || event.key === "Z") {
+        event.preventDefault();
+        ensureMusicStarted();
+        advanceDialogue();
+    }
+});
+</script>
+</body>
+</html>

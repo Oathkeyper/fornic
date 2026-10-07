@@ -1,0 +1,2683 @@
+@font-face {
+    font-family: "Determination";
+    src: url("assets/determination.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+* { box-sizing: border-box; }
+
+html,
+body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    cursor: none;
+}
+
+#game-container {
+    position: relative;
+    width: min(100vw, calc(100vh * 16 / 9));
+    aspect-ratio: 16 / 9;
+    background: #000;
+    overflow: hidden;
+    cursor: none;
+}
+
+#game {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: #000;
+    z-index: 0;
+}
+
+#depths-background {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0;
+    filter:
+        brightness(0.75)
+        contrast(1.2)
+        saturate(0.7)
+        hue-rotate(8deg);
+    transform: scale(1.04);
+    transition: opacity 2.5s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+#depths-background.visible {
+    opacity: 0.82;
+}
+
+@keyframes voiceGlow {
+    0%, 100% {
+        text-shadow:
+            0 0 1px #ffffff,
+            0 0 3px #aaaaaa;
+    }
+
+    50% {
+        text-shadow:
+            0 0 3px #ffffff,
+            0 0 7px #cccccc,
+            0 0 13px #777777,
+            0 0 20px #444444;
+    }
+}
+
+#voice-dialogue {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 88%;
+    margin: 0;
+    color: #fff;
+    font-family: "Determination", "Courier New", monospace;
+    font-size: clamp(24px, 2.3vw, 44px);
+    font-weight: normal;
+    line-height: 1.5;
+    letter-spacing: 0.28em;
+    text-align: center;
+    white-space: pre-wrap;
+    text-transform: uppercase;
+    -webkit-text-stroke: 3px rgba(127, 127, 127, 0.85);
+    paint-order: stroke fill;
+    animation: voiceGlow 4s ease-in-out infinite;
+    opacity: 0;
+    transition: opacity 0.65s ease;
+    pointer-events: none;
+    z-index: 2;
+}
+
+#voice-dialogue.visible {
+    opacity: 1;
+}
+
+#start-screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #000;
+    z-index: 10;
+    transition: opacity 0.5s ease;
+}
+
+#start-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+@keyframes beginFlicker {
+    0%,
+    72% {
+        opacity: 1;
+        text-shadow:
+            0 0 2px #00ff00,
+            0 0 8px rgba(0, 255, 0, 0.70);
+    }
+
+    73%,
+    86% {
+        opacity: 0;
+        text-shadow: none;
+    }
+
+    87%,
+    100% {
+        opacity: 1;
+        text-shadow:
+            0 0 2px #00ff00,
+            0 0 8px rgba(0, 255, 0, 0.70);
+    }
+}
+
+#start-button {
+    border: none;
+    background: transparent;
+
+    color: #00ff00;
+
+    font-family: "Determination", monospace;
+    font-size: clamp(18px, 1.6vw, 32px);
+    letter-spacing: 0.15em;
+
+    cursor: none;
+    animation:
+        beginFlicker 1s steps(1, end) infinite;
+
+    transition:
+        opacity 0.18s linear;
+}
+
+#start-button:hover {
+    filter: brightness(1.25);
+}
+
+#start-button.title-sequence-started {
+    opacity: 0;
+    animation: none;
+    pointer-events: none;
+}
+
+#title-screen-logo {
+    display: none;
+
+    width: min(760px, 80vw);
+    height: auto;
+
+    image-rendering: pixelated;
+
+    user-select: none;
+    pointer-events: none;
+
+    opacity: 0;
+}
+
+#title-screen-logo.visible {
+    display: block;
+
+    animation:
+        titleLogoAppear 1.5s ease forwards;
+}
+
+@keyframes titleLogoAppear {
+    from {
+        opacity: 0;
+        transform: translateY(-12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#title-start-prompt {
+    display: none;
+
+    min-height: 1.5em;
+
+    color: white;
+
+    font-family: "Determination", monospace;
+    font-size: clamp(18px, 2vw, 32px);
+    font-weight: normal;
+
+    letter-spacing: 0.18em;
+    text-align: center;
+
+    text-shadow:
+        0 0 2px rgba(255, 255, 255, 0.9),
+        0 0 6px rgba(255, 255, 255, 0.35);
+}
+
+#title-start-prompt.visible {
+    display: block;
+}
+
+#title-start-prompt.ready {
+    animation:
+        titlePromptBlink 1.2s steps(1, end) infinite;
+}
+
+@keyframes titlePromptBlink {
+    0%,
+    70% {
+        opacity: 1;
+    }
+
+    71%,
+    100% {
+        opacity: 0.35;
+    }
+}
+#start-screen.title-mode {
+    flex-direction: column;
+    gap: 52px;
+}
+
+#heart-cursor {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    display: none;
+}
+
+@font-face {
+    font-family: "8BitOperator";
+    src: url("assets/8bitoperator.otf.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+}
+
+#undertale-stage {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    display: none;
+    background: #000;
+
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+
+    pointer-events: auto;
+    cursor: none;
+
+    z-index: 20;
+}
+
+#undertale-stage.active {
+    display: block;
+}
+
+@font-face {
+    font-family: "EramFont";
+    src: url("assets/Final_Fantasy_I_-_NES.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+#eram-page3 {
+    position: absolute;
+    contain: paint;
+    inset: 0;
+    z-index: 100;
+
+    display: none;
+    overflow: hidden;
+
+    background: #000;
+    opacity: 0;
+
+    transition: opacity 1.8s ease;
+
+    cursor: none;
+}
+
+#eram-page3.visible {
+    opacity: 1;
+}
+#eram-page3::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+
+    pointer-events: none;
+
+    background:
+        repeating-linear-gradient(
+            to bottom,
+            transparent 0,
+            transparent 2px,
+            rgba(255,255,255,0.022) 3px,
+            rgba(0,0,0,0.09) 4px
+        );
+
+    opacity: 0.48;
+
+    animation:
+        eramPage3ScanlineDrift 8s linear infinite;
+}
+
+#eram-page3-fountain {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+    background: #000;
+
+    opacity: 0;
+    transition: opacity 1.8s ease;
+}
+
+#eram-page3-fountain.visible {
+    opacity: 1;
+}
+
+#eram-page3-fountain.quick-hidden {
+    opacity: 0;
+    transition: opacity 0.42s ease-out;
+}
+
+#eram-page3-door {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+
+    overflow: hidden;
+    background: #000;
+
+    opacity: 0;
+
+    transition:
+        opacity 3.4s ease-in-out;
+
+    pointer-events: none;
+}
+
+#eram-page3-door.visible {
+    opacity: 1;
+}
+
+#eram-page3-door-image {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    object-position: center;
+
+    transform: scale(1.025);
+
+    filter:
+        blur(10px)
+        brightness(0.54)
+        saturate(0.82);
+
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+
+#eram-page3-fountain-image {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+    object-position: center;
+
+    filter:
+        brightness(0.52)
+        contrast(1.18)
+        saturate(0.86);
+
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+
+#eram-page3-shade {
+    position: absolute;
+    inset: 0;
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            rgba(0,0,0,0.04) 0%,
+            rgba(0,0,0,0.16) 68%,
+            rgba(0,0,0,0.40) 100%
+        );
+
+    pointer-events: none;
+}
+
+#eram-page3-prompt {
+    position: absolute;
+    left: 50%;
+    bottom: 7%;
+    z-index: 5;
+
+    transform: translateX(-50%);
+
+    color: #fff;
+
+    font-family: "EramFont", monospace;
+    font-size: clamp(20px, 2vw, 32px);
+    letter-spacing: 0.14em;
+    white-space: nowrap;
+
+    opacity: 0.72;
+
+    text-shadow:
+        0 0 1px rgba(255,255,255,0.9),
+        0 0 4px rgba(255,255,255,0.25);
+
+    animation:
+        eramPage3PromptBlink 1.2s steps(1, end) infinite;
+}
+
+#eram-page3-prompt.hidden {
+    display: none;
+}
+
+#eram-page3-dialogue {
+    position: absolute;
+    top: 4%;
+    left: 2%;
+    z-index: 10;
+
+    width: 94%;
+    min-height: 1.5em;
+
+    opacity: 1;
+    transition: opacity 0.65s ease;
+
+    animation:
+        eramPage3Flicker 0.16s infinite,
+        eramPage3Jitter 4s steps(1, end) infinite;
+}
+
+#eram-page3-dialogue.hidden {
+    opacity: 0;
+    animation: none;
+    pointer-events: none;
+}
+
+.eram-page3-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    margin: 0;
+
+    font-family: "AdventureBoard";
+    font-size: clamp(50px, 5vw, 75px);
+    font-weight: normal;
+
+    line-height: 1.5;
+    letter-spacing: 0.14em;
+
+    text-align: left;
+    white-space: pre-wrap;
+
+    pointer-events: none;
+}
+
+#eram-page3-red {
+    color: rgba(255,42,42,0.42);
+    transform: translateX(-2px);
+    z-index: 1;
+}
+
+#eram-page3-cyan {
+    color: rgba(0,205,235,0.34);
+    transform: translateX(2px);
+    z-index: 2;
+}
+
+#eram-page3-white {
+    color: rgba(236,236,236,0.86);
+    z-index: 3;
+
+    text-shadow:
+        0 0 1px rgba(255,255,255,0.66),
+        0 0 3px rgba(255,255,255,0.12);
+}
+
+#eram-page3-cursor {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 200;
+
+    display: none;
+
+    width: 32px;
+    height: 32px;
+
+    transform: translate(-50%, -50%);
+
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+
+    pointer-events: none;
+    user-select: none;
+}
+
+@keyframes eramPage3Flicker {
+    0% {
+        filter: contrast(1.10) brightness(1) blur(0.18px);
+    }
+
+    22% {
+        filter: contrast(1.10) brightness(0.95) blur(0.18px);
+    }
+
+    48% {
+        filter: contrast(1.10) brightness(0.99) blur(0.18px);
+    }
+
+    74% {
+        filter: contrast(1.10) brightness(0.92) blur(0.18px);
+    }
+
+    100% {
+        filter: contrast(1.10) brightness(1) blur(0.18px);
+    }
+}
+
+@keyframes eramPage3Jitter {
+    0%,
+    95%,
+    100% {
+        transform: translate(0,0);
+    }
+
+    96% {
+        transform: translate(-1px,0);
+    }
+
+    97% {
+        transform: translate(1px,0);
+    }
+
+    98% {
+        transform: translate(0,1px);
+    }
+
+    99% {
+        transform: translate(-1px,0);
+    }
+}
+
+@keyframes eramPage3PromptBlink {
+    0%,
+    68% {
+        opacity: 0.72;
+    }
+
+    69%,
+    100% {
+        opacity: 0.25;
+    }
+}
+
+@keyframes eramPage3ScanlineDrift {
+    from {
+        background-position: 0 0;
+    }
+
+    to {
+        background-position: 0 4px;
+    }
+}
+
+#page6-stage {
+    position: absolute;
+    inset: 0;
+
+    z-index: 180;
+
+    display: none;
+    overflow: hidden;
+
+    background: #000;
+
+    opacity: 0;
+
+    transition:
+        opacity 0.72s steps(22, end);
+
+    cursor: none;
+
+    contain: paint;
+}
+
+#page6-stage.visible {
+    opacity: 1;
+}
+#page6-flowey-wrap {
+    position: absolute;
+    left: 50%;
+    top: 56%;
+
+    width: clamp(
+        92px,
+        6.8vw,
+        138px
+    );
+
+    aspect-ratio: 42 / 49;
+    height: auto;
+    overflow: visible;
+
+    transform:
+        translate(
+            calc(-50% + var(--page6-flowey-shake-x, 0px)),
+            calc(-50% + var(--page6-flowey-shake-y, 0px))
+        );
+
+    z-index: 20;
+
+    pointer-events: none;
+}
+
+#page6-flowey-sprite {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+
+    display: block;
+
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center bottom;
+
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+
+    pointer-events: none;
+}
+
+#page6-flowey-face-overlay {
+    position: absolute;
+    left: 0;
+    top: calc(100% * 5 / 49);
+
+    display: none;
+
+    width: 100%;
+    height: calc(100% * 44 / 49);
+    aspect-ratio: 43 / 29;
+    object-fit: contain;
+    object-position: left top;
+
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+
+    z-index: 2;
+    pointer-events: none;
+}
+
+#page6-flowey-face-overlay.visible {
+    display: block;
+}
+#page6-flowey-mouth-overlay {
+    position: absolute;
+    left: 0;
+    top: calc(100% * 5 / 49);
+
+    display: none;
+
+    width: 100%;
+    height: calc(100% * 44 / 49);
+    aspect-ratio: 43 / 29;
+    object-fit: contain;
+    object-position: left top;
+
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    clip-path: inset(47% 28% 10% 28%);
+
+    z-index: 3;
+    pointer-events: none;
+}
+
+#page6-flowey-mouth-overlay.visible {
+    display: block;
+}
+
+body.page6-active #heart-cursor {
+    display: none !important;
+}
+#page6-souls {
+    position: absolute;
+    inset: 0;
+
+    z-index: 18;
+
+    pointer-events: none;
+}
+
+.page6-soul {
+    position: absolute;
+    left: 0;
+    top: 0;
+
+    width: clamp(
+        24px,
+        1.85vw,
+        38px
+    );
+
+    height: auto;
+
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+
+    transform:
+        translate(
+            -50%,
+            -50%
+        );
+
+    transform-origin:
+        center;
+
+    will-change:
+        transform;
+
+    pointer-events: none;
+}
+#page6-dialogue {
+    position: absolute;
+
+    left: 50%;
+    top: 11.5%;
+
+    transform:
+        translateX(
+            -50%
+        );
+
+    display: flex;
+
+    align-items:
+        flex-start;
+
+    justify-content:
+        center;
+
+    gap: 0.42em;
+
+    width: min(
+        82%,
+        1500px
+    );
+
+    margin: 0;
+
+    color: #fff;
+
+    font-family:
+        "Determination",
+        "Courier New",
+        monospace;
+
+    font-size:
+        clamp(
+            24px,
+            2.05vw,
+            42px
+        );
+
+    line-height: 1.35;
+
+    text-align:
+        center;
+
+    white-space:
+        pre-wrap;
+
+    opacity: 0;
+
+    transition:
+        opacity 0.34s steps(10, end);
+    text-shadow:
+        2px 2px 0 #000,
+        -2px 2px 0 #000,
+        2px -2px 0 #000,
+        -2px -2px 0 #000;
+
+    z-index: 60;
+
+    pointer-events: none;
+}
+
+#page6-dialogue.visible {
+    opacity: 1;
+}
+
+#page6-dialogue-star {
+    flex: 0 0 auto;
+}
+
+#page6-dialogue-text {
+    min-width: 0;
+}
+#page6-whitewash {
+    position: absolute;
+    inset: 0;
+
+    z-index: 45;
+
+    background: #fff;
+
+    opacity: 0;
+
+    transition:
+        opacity 0.9s steps(27, end);
+
+    pointer-events: none;
+}
+#page6-stage.final-white
+#page6-dialogue {
+    color: #000;
+
+    text-shadow: none;
+}
+@keyframes page6SoulPulse {
+    0%,
+    100% {
+        filter:
+            brightness(0.94);
+    }
+
+    50% {
+        filter:
+            brightness(1.12);
+    }
+}
+
+.page6-soul.orbiting {
+    animation:
+        page6SoulPulse
+        1.85s
+        steps(28, end)
+        infinite;
+}
+
+#page-transition-white {
+    position: absolute;
+    inset: 0;
+
+    z-index: 5000;
+
+    background: #ffffff;
+
+    opacity: 0;
+
+    transition:
+        opacity 1.05s ease-in-out;
+
+    pointer-events: none;
+}
+
+#page-transition-white.visible {
+    opacity: 1;
+}
+
+#page5-stage {
+    position: absolute;
+    contain: paint;
+    inset: 0;
+
+    z-index: 160;
+
+    display: none;
+
+    overflow: hidden;
+
+    background: #000;
+
+    opacity: 0;
+
+    transition:
+        opacity 0.72s ease-out;
+
+    cursor: none;
+}
+
+#page5-stage.visible {
+    opacity: 1;
+}
+
+#page5-picture {
+    position: absolute;
+    inset: 0;
+
+    overflow: hidden;
+
+    background: #000;
+    animation:
+        page5PictureJitter 8s steps(1, end) infinite;
+}
+
+.page5-background-layer {
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    object-position: center;
+
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+
+.page5-background-base {
+    z-index: 1;
+    filter:
+        brightness(0.88)
+        contrast(1.10)
+        saturate(0.94);
+}
+
+.page5-background-red {
+    z-index: 2;
+
+    opacity: 0.070;
+
+    mix-blend-mode: screen;
+
+    filter:
+        grayscale(1)
+        sepia(1)
+        saturate(18)
+        hue-rotate(315deg)
+        brightness(0.78)
+        contrast(1.20);
+
+    animation:
+        page5RedGhost 7s steps(1, end) infinite;
+}
+
+.page5-background-blue {
+    z-index: 3;
+
+    opacity: 0.085;
+
+    mix-blend-mode: screen;
+
+    filter:
+        grayscale(1)
+        sepia(1)
+        saturate(16)
+        hue-rotate(155deg)
+        brightness(0.76)
+        contrast(1.20);
+
+    animation:
+        page5BlueGhost 6.3s steps(1, end) infinite;
+}
+
+#page5-snow {
+    position: absolute;
+    inset: 0;
+
+    z-index: 15;
+
+    overflow: hidden;
+
+    pointer-events: none;
+}
+
+#page5-vcr-roll {
+    position: absolute;
+
+    left: 0;
+    right: 0;
+
+    top: -22%;
+
+    height: 18%;
+
+    z-index: 31;
+
+    pointer-events: none;
+
+    opacity: 0.15;
+
+    background:
+        linear-gradient(
+            to bottom,
+            transparent 0%,
+            rgba(255,255,255,0.025) 28%,
+            rgba(255,255,255,0.12) 48%,
+            rgba(0,0,0,0.22) 56%,
+            transparent 100%
+        );
+
+    mix-blend-mode: screen;
+
+    animation:
+        page5VcrRoll
+        8.5s
+        linear
+        infinite;
+}
+
+#page5-scanlines {
+    position: absolute;
+    inset: 0;
+
+    z-index: 32;
+
+    pointer-events: none;
+
+    background:
+        repeating-linear-gradient(
+            to bottom,
+            rgba(255,255,255,0.020) 0,
+            rgba(255,255,255,0.020) 1px,
+            rgba(0,0,0,0.13) 2px,
+            rgba(0,0,0,0.13) 4px
+        );
+
+    opacity: 0.72;
+
+    animation:
+        page5ScanlineDrift
+        9s
+        linear
+        infinite;
+}
+
+#page5-vignette {
+    position: absolute;
+    inset: 0;
+
+    z-index: 33;
+
+    pointer-events: none;
+
+    background:
+        radial-gradient(
+            ellipse at center,
+            transparent 52%,
+            rgba(0,0,0,0.13) 77%,
+            rgba(0,0,0,0.40) 100%
+        );
+
+    box-shadow:
+        inset 0 0 42px rgba(0,0,0,0.35);
+}
+
+@keyframes page5SnowFall {
+    0% {
+        top: -10%;
+
+        transform:
+            translateX(0)
+            rotate(0deg);
+    }
+
+    100% {
+        top: 115%;
+
+        transform:
+            translateX(
+                var(--snow-drift)
+            )
+            rotate(
+                var(--snow-spin)
+            );
+    }
+}
+
+@keyframes page5PictureJitter {
+    0%,
+    89%,
+    100% {
+        transform:
+            translate(0, 0);
+    }
+
+    90% {
+        transform:
+            translate(-0.08%, 0);
+    }
+
+    91% {
+        transform:
+            translate(0.05%, 0.06%);
+    }
+
+    92% {
+        transform:
+            translate(0, 0);
+    }
+}
+
+@keyframes page5RedGhost {
+    0%,
+    87%,
+    100% {
+        transform:
+            translateX(2px);
+    }
+
+    88% {
+        transform:
+            translateX(5px);
+    }
+
+    89% {
+        transform:
+            translateX(1px);
+    }
+
+    90% {
+        transform:
+            translateX(3px);
+    }
+}
+
+@keyframes page5BlueGhost {
+    0%,
+    84%,
+    100% {
+        transform:
+            translateX(-2px);
+    }
+
+    85% {
+        transform:
+            translateX(-5px);
+    }
+
+    86% {
+        transform:
+            translateX(-1px);
+    }
+
+    87% {
+        transform:
+            translateX(-3px);
+    }
+}
+
+@keyframes page5VcrRoll {
+    from {
+        transform:
+            translateY(0);
+    }
+
+    to {
+        transform:
+            translateY(760%);
+    }
+}
+
+@keyframes page5ScanlineDrift {
+    from {
+        background-position:
+            0 0;
+    }
+
+    to {
+        background-position:
+            0 12px;
+    }
+}
+
+#page5-stars {
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+
+    overflow: hidden;
+
+    pointer-events: none;
+}
+
+.page5-cold-star {
+    position: absolute;
+
+    left: var(--star-x);
+    top: var(--star-y);
+
+    width: auto;
+    height: auto;
+    transform:
+        translate(-50%, -50%)
+        scale(var(--star-scale));
+
+    transform-origin: center;
+
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+
+    opacity: 0.94;
+
+    pointer-events: none;
+
+    user-select: none;
+    -webkit-user-drag: none;
+
+    animation:
+        page5StarGlow
+        3.6s
+        ease-in-out
+        infinite;
+
+    animation-delay:
+        var(--star-glow-delay);
+}
+
+#page5-ground-scroll {
+    position: absolute;
+    inset: 0;
+
+    z-index: 10;
+
+    overflow: hidden;
+
+    pointer-events: none;
+}
+
+#page5-ground-canvas {
+    display: block;
+
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+
+    pointer-events: none;
+}
+.page5-snowflake {
+    position: absolute;
+
+    top: -6%;
+
+    width: var(--snow-size);
+    height: auto;
+
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+
+    opacity: var(--snow-opacity);
+
+    pointer-events: none;
+
+    animation:
+        page5SnowFall
+        var(--snow-duration)
+        linear
+        infinite;
+
+    animation-delay:
+        var(--snow-delay);
+
+    will-change:
+        top,
+        transform;
+}
+
+@keyframes page5StarGlow {
+    0%,
+    100% {
+        filter:
+            brightness(0.78);
+    }
+
+    50% {
+        filter:
+            brightness(1.22);
+    }
+}
+
+#page5-dialogue {
+    position: absolute;
+    top: 5%;
+    left: 4%;
+
+    z-index: 24;
+
+    width: 90%;
+    min-height: 1.5em;
+
+    opacity: 1;
+
+    transition:
+        opacity 0.65s ease;
+
+    animation:
+        page5DialogueFlicker 0.18s infinite,
+        page5DialogueJitter 4.6s steps(1, end) infinite;
+
+    pointer-events: none;
+}
+
+#page5-dialogue.hidden {
+    opacity: 0;
+
+    animation: none;
+}
+
+.page5-dialogue-layer {
+    position: absolute;
+    inset: 0 auto auto 0;
+
+    width: 100%;
+    margin: 0;
+
+    font-family: "AdventureBoard";
+    font-size:
+        clamp(
+            30px,
+            3.15vw,
+            58px
+        );
+
+    font-weight: normal;
+
+    line-height: 1.45;
+
+    letter-spacing: 0.115em;
+
+    text-align: left;
+
+    white-space: pre-wrap;
+
+    pointer-events: none;
+}
+
+#page5-dialogue-red {
+    color:
+        rgba(
+            255,
+            42,
+            42,
+            0.40
+        );
+
+    transform:
+        translateX(-2px);
+
+    z-index: 1;
+}
+
+#page5-dialogue-cyan {
+    color:
+        rgba(
+            0,
+            205,
+            235,
+            0.32
+        );
+
+    transform:
+        translateX(2px);
+
+    z-index: 2;
+}
+
+#page5-dialogue-white {
+    color:
+        rgba(
+            240,
+            240,
+            240,
+            0.90
+        );
+
+    z-index: 3;
+
+    text-shadow:
+        0 0 1px rgba(255,255,255,0.64),
+        0 0 3px rgba(255,255,255,0.12);
+}
+
+@keyframes page5DialogueFlicker {
+    0% {
+        filter:
+            contrast(1.08)
+            brightness(1);
+    }
+
+    28% {
+        filter:
+            contrast(1.08)
+            brightness(0.96);
+    }
+
+    54% {
+        filter:
+            contrast(1.08)
+            brightness(1);
+    }
+
+    77% {
+        filter:
+            contrast(1.08)
+            brightness(0.93);
+    }
+
+    100% {
+        filter:
+            contrast(1.08)
+            brightness(1);
+    }
+}
+
+@keyframes page5DialogueJitter {
+    0%,
+    95%,
+    100% {
+        transform:
+            translate(0,0);
+    }
+
+    96% {
+        transform:
+            translate(-1px,0);
+    }
+
+    97% {
+        transform:
+            translate(1px,0);
+    }
+
+    98% {
+        transform:
+            translate(0,1px);
+    }
+
+    99% {
+        transform:
+            translate(-1px,0);
+    }
+}
+
+#page7-stage {
+    position: absolute;
+    inset: 0;
+    z-index: 120;
+
+    display: none;
+    overflow: hidden;
+
+    background: #000;
+    opacity: 0;
+
+    transition: opacity 0.72s ease;
+
+    cursor: none;
+}
+
+#page7-stage.visible {
+    opacity: 1;
+}
+#page7-stage::after {
+    content: "";
+
+    position: absolute;
+    inset: 0;
+    z-index: 12;
+
+    pointer-events: none;
+
+    background:
+        repeating-linear-gradient(
+            to bottom,
+            transparent 0,
+            transparent 2px,
+            rgba(255,255,255,0.022) 3px,
+            rgba(0,0,0,0.09) 4px
+        );
+
+    opacity: 0.48;
+
+    animation:
+        eramPage3ScanlineDrift 8s linear infinite;
+}
+#page7-bg-gif {
+    position: absolute;
+
+    left: 50%;
+    top: 50%;
+
+    z-index: 2;
+
+    transform: translate(-50%, -50%);
+
+    width: auto;
+    height: auto;
+
+    max-width: none;
+    max-height: none;
+    object-fit: fill;
+
+    background: transparent;
+
+    pointer-events: none;
+}
+#page7-dialogue {
+    position: absolute;
+
+    left: 4%;
+    top: 4%;
+
+    z-index: 20;
+
+    width: 92%;
+    min-height: 1.5em;
+
+    opacity: 0;
+
+    transition:
+        opacity 0.22s ease;
+
+    animation:
+        eramPage3Flicker 0.16s infinite,
+        eramPage3Jitter 4s steps(1, end) infinite;
+
+    pointer-events: none;
+}
+
+#page7-dialogue.visible {
+    opacity: 1;
+}
+
+.page7-dialogue-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+
+    width: 100%;
+    margin: 0;
+
+    font-family: "AdventureBoard";
+
+    font-size:
+        clamp(
+            34px,
+            3.25vw,
+            62px
+        );
+
+    font-weight: normal;
+
+    line-height: 1.35;
+    letter-spacing: 0.08em;
+
+    text-align: left;
+    white-space: pre-wrap;
+
+    pointer-events: none;
+}
+
+#page7-dialogue-red {
+    color: rgba(255,42,42,0.40);
+    transform: translateX(-2px);
+    z-index: 1;
+}
+
+#page7-dialogue-cyan {
+    color: rgba(0,205,235,0.34);
+    transform: translateX(2px);
+    z-index: 2;
+}
+
+#page7-dialogue-text {
+    color: rgba(242,242,242,0.94);
+    z-index: 3;
+
+    text-shadow:
+        0 0 1px rgba(255,255,255,0.82),
+        0 0 4px rgba(255,255,255,0.14);
+}
+
+body.page7-active #heart-cursor {
+    display: none !important;
+}
+
+@font-face {
+    font-family: "AdventureBoard";
+    src: url("assets/AdventureBoard8bit-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+#secret-stage {
+    --secret-ground-top: 56%;
+    position: absolute;
+    inset: 0;
+    z-index: 180;
+    display: none;
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+    font-family: "AdventureBoard", monospace;
+    font-weight: 400;
+    cursor: none;
+}
+
+#secret-stage.active {
+    display: block;
+}
+
+#secret-world {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 12000px;
+    height: 100%;
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+}
+
+#secret-world.camera-glide {
+    transition: transform .72s ease-in-out;
+}
+#secret-ground {
+    position: absolute;
+    z-index: 3;
+    left: 0;
+    right: 0;
+    top: var(--secret-ground-top);
+    bottom: 0;
+    opacity: 0;
+    background-image:
+        url("assets/art/forgottenman/purplelandgif.gif");
+    background-repeat: repeat;
+    background-size: 80px 80px;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+#secret-ground::before {
+    content: "";
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    right: 0;
+    top: -12px;
+    height: 12px;
+    background-image:
+        url("assets/art/forgottenman/purplelandtop.png");
+    background-repeat: repeat-x;
+    background-size: 80px 12px;
+    background-position: left top;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+#secret-fountain {
+    position: absolute;
+    z-index: 2;
+    bottom: calc(44% - 8px);
+    width: 384px;
+    height: 960px;
+    object-fit: contain;
+    object-position: center bottom;
+    opacity: 0;
+    filter:
+        brightness(.18)
+        saturate(.68)
+        contrast(1.10);
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+#secret-bridge {
+    position: absolute;
+    z-index: 3;
+    height: 430px;
+    bottom: calc(44% - 5px);
+    opacity: 0;
+    filter:
+        brightness(1.55)
+        contrast(1.08);
+    background-image:
+        url("assets/art/forgottenman/bridge.png");
+    background-repeat: repeat-x;
+    background-position: left bottom;
+    background-size: 320px 432px;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+#secret-tower {
+    position: absolute;
+    z-index: 4;
+    bottom: calc(44% + 12px);
+    height: min(86vh, 760px);
+    width: auto;
+    opacity: 0;
+    filter:
+        brightness(1.38)
+        contrast(1.04);
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+#secret-stars {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    height: 54%;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.secret-star {
+    position: absolute;
+    width: 13px;
+    height: 15px;
+    transform: scale(2.15);
+    transform-origin: center;
+    image-rendering: pixelated;
+}
+
+#secret-tree {
+    position: absolute;
+    z-index: 7;
+    bottom: calc(44% - 4px);
+    width: 600px;
+    height: auto;
+    opacity: 0;
+    transition: none !important;
+    image-rendering: pixelated;
+    pointer-events: none;
+}
+
+#secret-petals {
+    position: absolute;
+    z-index: 8;
+    top: 0;
+    height: 56%;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.secret-petal {
+    position: absolute;
+    right: -60px;
+    width: auto;
+    height: auto;
+    opacity: .95;
+    image-rendering: pixelated;
+    pointer-events: none;
+    user-select: none;
+    transform: scale(2) rotate(35deg);
+    transform-origin: center;
+    animation:
+        secretPetalDrift
+        linear
+        infinite;
+}
+
+@keyframes secretPetalDrift {
+    0% {
+        transform:
+            translate3d(0, 0, 0)
+            rotate(35deg);
+        opacity: 0;
+    }
+
+    8% {
+        opacity: .95;
+    }
+
+    100% {
+        transform:
+            translate3d(calc(-1 * var(--petal-travel, 1500px)), var(--petal-drop, 190px), 0)
+            rotate(410deg);
+        opacity: 0;
+    }
+}
+
+#secret-actors {
+    position: absolute;
+    z-index: 12;
+    inset: 0;
+    pointer-events: none;
+}
+
+.secret-actor {
+    position: absolute;
+    bottom: calc(44% - 2px);
+    width: auto;
+    height: auto;
+
+    transform:
+        scale(4);
+
+    transform-origin:
+        center bottom;
+
+    image-rendering:
+        pixelated;
+
+    image-rendering:
+        crisp-edges;
+
+    pointer-events:
+        none;
+
+    user-select:
+        none;
+
+    opacity: 0;
+
+    transition:
+        opacity .35s linear;
+}
+
+.secret-actor.visible {
+    opacity: 1;
+}
+.secret-actor.face-right-mirror {
+    transform:
+        scale(-4, 4);
+}
+
+.secret-actor.player {
+    z-index: 15;
+}
+
+.secret-actor.follower {
+    z-index: 14;
+}
+
+.secret-actor.npc {
+    z-index: 12;
+}
+
+#secret-soul-button {
+    position: absolute;
+    z-index: 90;
+    left: 50%;
+    top: 50%;
+    transform:
+        translate(-50%, -50%);
+
+    display: none;
+    flex-direction: column;
+    align-items: center;
+
+    gap: 34px;
+    padding: 40px;
+
+    border: 0;
+    background: transparent;
+    color: #fff;
+
+    font-family:
+        "AdventureBoard",
+        monospace;
+
+    font-size:
+        clamp(7px, .55vw, 10px);
+
+    line-height: 1.45;
+    letter-spacing: .04em;
+
+    cursor: pointer;
+}
+
+#secret-soul-button.visible {
+    display: flex;
+}
+
+#secret-soul {
+    width: 16px;
+    height: auto;
+
+    transform:
+        scale(2);
+
+    image-rendering:
+        pixelated;
+
+    transition:
+        filter .25s ease,
+        transform .25s ease;
+}
+
+#secret-soul-button.glowing #secret-soul {
+    filter:
+        drop-shadow(0 0 5px #f00)
+        drop-shadow(0 0 14px #f00)
+        drop-shadow(0 0 30px #f00);
+
+    transform:
+        scale(2.25);
+}
+#secret-soul-prompt {
+    animation:
+        secretArcadeBlink
+        .92s
+        steps(1, end)
+        infinite;
+}
+
+#secret-soul-prompt.dismissed {
+    display: none;
+    opacity: 0 !important;
+    animation: none;
+}
+
+#secret-soul-button.connected #secret-soul {
+    filter: brightness(0) invert(1) drop-shadow(0 0 8px #fff);
+    transform: scale(2.25);
+}
+
+@keyframes secretArcadeBlink {
+    0%,
+    46% {
+        opacity: 1;
+    }
+
+    47%,
+    100% {
+        opacity: 0;
+    }
+}
+#secret-dialogue,
+#secret-choice {
+    position: absolute;
+    z-index: 110;
+
+    left: 50%;
+    bottom: 4.5%;
+    top: auto;
+
+    transform:
+        translateX(-50%);
+
+    width:
+        min(900px, 78vw);
+
+    height:
+        min(190px, 22vh);
+
+    min-height:
+        150px;
+
+    box-sizing:
+        border-box;
+
+    background:
+        #000;
+
+    color:
+        #fff;
+
+    border:
+        0;
+
+    padding:
+        22px 28px 20px;
+
+    text-align:
+        left;
+
+    font-family:
+        "AdventureBoard",
+        monospace;
+    font-size:
+        clamp(12px, .92vw, 16px);
+
+    line-height:
+        1.75;
+
+    letter-spacing:
+        .02em;
+
+    text-shadow:
+        none;
+
+    overflow:
+        hidden;
+}
+
+#secret-dialogue {
+    display:
+        none;
+
+    align-items:
+        flex-start;
+
+    pointer-events:
+        none;
+}
+
+#secret-dialogue.visible {
+    display:
+        flex;
+}
+
+#secret-dialogue-text {
+    display:
+        block;
+
+    width:
+        100%;
+    white-space:
+        pre-wrap;
+
+    line-height:
+        1.55;
+}
+
+#secret-choice {
+    display:
+        none;
+
+    position:
+        absolute;
+}
+
+#secret-choice.visible {
+    display:
+        block;
+}
+#secret-choice-question {
+    position:
+        absolute;
+
+    left:
+        0;
+
+    right:
+        0;
+
+    top:
+        22px;
+
+    margin:
+        0;
+
+    text-align:
+        center;
+    white-space:
+        pre-wrap;
+
+    line-height:
+        1.55;
+}
+#secret-choice-row {
+    position:
+        absolute;
+
+    left:
+        50%;
+
+    top:
+        50%;
+
+    transform:
+        translate(-50%, -50%);
+
+    width:
+        460px;
+
+    height:
+        74px;
+}
+.secret-choice-option {
+    position:
+        absolute;
+
+    top:
+        30px;
+
+    width:
+        120px;
+
+    white-space:
+        nowrap;
+
+    text-align:
+        center;
+}
+
+.secret-choice-option:first-child {
+    left:
+        72px;
+}
+
+.secret-choice-option:last-child {
+    right:
+        72px;
+}
+
+.secret-choice-option.selected-single {
+    left:
+        170px;
+
+    right:
+        auto;
+
+    width:
+        180px;
+
+    text-align:
+        left;
+}
+#secret-choice-heart {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    image-rendering: pixelated;
+    object-fit: contain;
+    pointer-events: none;
+    transition: none;
+    transform: none;
+}
+#secret-choice-heart.cursor-left,
+#secret-choice-heart.cursor-center,
+#secret-choice-heart.cursor-right,
+#secret-choice-heart.cursor-single {
+    transform: none;
+}
+#secret-choice[data-selected="single"] #secret-choice-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    width: 100%;
+}
+
+#secret-choice[data-selected="single"] .selected-single {
+    position: static;
+    width: auto;
+}
+
+#secret-choice[data-selected="single"] #secret-choice-heart {
+    position: static;
+    order: -1;
+    flex: 0 0 16px;
+}
+
+#secret-choice[data-selected="single"] .secret-choice-option:last-child {
+    display: none;
+}
+
+#secret-final-line {
+    position:
+        absolute;
+
+    inset:
+        0;
+
+    z-index:
+        150;
+
+    display:
+        none;
+
+    align-items:
+        center;
+
+    justify-content:
+        center;
+
+    color:
+        #ff3131;
+
+    font-family:
+        "AdventureBoard",
+        monospace;
+
+    font-size:
+        clamp(7px, .55vw, 10px);
+
+    letter-spacing:
+        .03em;
+
+    text-align:
+        center;
+}
+
+#secret-final-line.visible {
+    display:
+        flex;
+}
+
+@media (max-width: 800px) {
+    #secret-dialogue,
+    #secret-choice {
+        width:
+            86vw;
+
+        height:
+            180px;
+
+        font-size:
+            clamp(10px, 2vw, 14px);
+    }
+}
+#secret-choice-question:empty {
+    display: none;
+}
+
+@font-face {
+    font-family: "NameGatePixel";
+    src: url("assets/8bitoperator.otf.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+#name-gate {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    color: #00ff21;
+    font-family: "NameGatePixel", monospace;
+    text-align: center;
+    cursor: none;
+    opacity: 1;
+    transition: opacity .25s steps(3, end);
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+#name-gate.accepted {
+    opacity: 0;
+}
+
+.name-gate-screen {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 520px;
+    font-size: clamp(18px, 1.7vw, 32px);
+    line-height: 1.18;
+    letter-spacing: 0;
+    text-shadow:
+        0 0 3px rgba(0, 255, 33, .72),
+        0 0 10px rgba(0, 255, 33, .22),
+        0 0 18px rgba(0, 255, 33, .12);
+}
+
+.name-gate-screen.hidden {
+    display: none;
+}
+
+.name-gate-screen > div {
+    display: block;
+}
+
+#name-gate-connected > div + div {
+    margin-top: 10px;
+}
+
+#name-gate-label {
+    margin-bottom: 42px;
+    letter-spacing: 0;
+}
+
+#name-gate-value {
+    min-width: 420px;
+    min-height: 42px;
+    letter-spacing: .06em;
+    white-space: pre;
+}
+
+body.name-gate-active #game-container {
+    pointer-events: none;
+}
+
+body.name-gate-active #heart-cursor {
+    display: none !important;
+}
+#start-button.controls-intro {
+    animation: none !important;
+    opacity: 1 !important;
+}
+\n\n/* Mixed punctuation: Determination glyphs inside ERAM/Forgotten-Man text. */
+.determination-punct {
+    font-family: "Determination", monospace !important;
+    font-weight: normal;
+    text-shadow:
+        -1px 0 rgba(255, 35, 35, .34),
+         1px 0 rgba(0, 220, 255, .30),
+         0 0 2px rgba(255,255,255,.55);
+}
+#page7-final-message {
+    position: absolute;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    white-space: pre-line;
+    text-align: center;
+    color: #00ff18;
+    font-family: "Determination", monospace;
+    font-size: clamp(28px, 3vw, 52px);
+    line-height: 1.45;
+    text-shadow: 0 0 5px #00ff18, 0 0 12px rgba(0,255,24,.55);
+}
+#page7-final-message[style*="display: block"] { display: flex !important; }
+#page7-stage.finale-fadeout > * {
+    opacity: 0 !important;
+    transition: opacity 1.2s linear !important;
+}
+#page7-stage.finale-fadeout {
+    background: #000 !important;
+}
+#eram-page3-dialogue .board-punct,
+#page5-dialogue .board-punct,
+#page7-dialogue .board-punct {
+    font-family: "EramFont", "Determination" !important;
+    font-weight: normal;
+    font-style: normal;
+    font-size: 1em;
+    line-height: inherit;
+    letter-spacing: inherit;
+    vertical-align: baseline;
+    text-shadow: inherit;
+}
+
+#eram-page3-dialogue .eram-page3-layer,
+#page5-dialogue .page5-dialogue-layer,
+#page7-dialogue .page7-dialogue-layer {
+    font-family: "AdventureBoard" !important;
+}
+#eram-page3-dialogue .eram-page3-layer {
+    font-size: clamp(11px, 0.95vw, 16px);
+}
+
+#page5-dialogue .page5-dialogue-layer {
+    font-size: clamp(10px, 0.90vw, 15px);
+}
+
+#page7-dialogue .page7-dialogue-layer {
+    font-size: clamp(10px, 0.92vw, 15px);
+}
+#eram-page3-dialogue .board-punct,
+#page5-dialogue .board-punct,
+#page7-dialogue .board-punct {
+    font-size: 1em;
+    line-height: inherit;
+}
+#eram-page3-dialogue .board-punct,
+#page5-dialogue .board-punct,
+#page7-dialogue .board-punct {
+    font-size: 1.72em !important;
+    line-height: 0 !important;
+    display: inline-block;
+    vertical-align: -0.08em;
+    letter-spacing: 0;
+    transform: scaleX(0.82);
+    transform-origin: center bottom;
+}
+#eram-page3-dialogue .eram-page3-layer,
+#page5-dialogue .page5-dialogue-layer,
+#page7-dialogue .page7-dialogue-layer {
+    line-height: 2.35 !important;
+}
+
+#eram-page3-dialogue .board-punct,
+#page5-dialogue .board-punct,
+#page7-dialogue .board-punct {
+    font-family: "Determination" !important;
+    font-size: 1.72em !important;
+    line-height: 0 !important;
+    display: inline-block !important;
+    vertical-align: baseline !important;
+    position: relative;
+    top: 0.18em;
+    letter-spacing: 0 !important;
+    transform: scaleX(0.82) !important;
+    transform-origin: center center !important;
+    text-shadow: inherit !important;
+}
+#eram-page3-dialogue .adventure-glyph,
+#page5-dialogue .adventure-glyph,
+#page7-dialogue .adventure-glyph {
+    display: inline-block;
+    width: auto;
+    height: 1em;
+    vertical-align: -0.10em;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+}
+#eram-page3-red .adventure-glyph,
+#page5-dialogue-red .adventure-glyph,
+#page7-dialogue-red .adventure-glyph {
+    filter: brightness(0) saturate(100%) invert(24%) sepia(99%) saturate(6500%) hue-rotate(356deg) brightness(104%) contrast(117%);
+}
+#eram-page3-cyan .adventure-glyph,
+#page5-dialogue-cyan .adventure-glyph,
+#page7-dialogue-cyan .adventure-glyph {
+    filter: brightness(0) saturate(100%) invert(79%) sepia(70%) saturate(2468%) hue-rotate(133deg) brightness(94%) contrast(101%);
+}
+#eram-page3-dialogue .board-punct,
+#page5-dialogue .board-punct,
+#page7-dialogue .board-punct { all: unset; }
+#eram-page3-dialogue .adventure-glyph,
+#page5-dialogue .adventure-glyph,
+#page7-dialogue .adventure-glyph {
+    height: 2.35em !important;
+    width: auto !important;
+    vertical-align: -0.47em !important;
+    margin-right: -0.18em !important;
+}
+#eram-page3-dialogue,
+#page5-dialogue,
+#page7-dialogue,
+#eram-page3-red,
+#eram-page3-cyan,
+#page5-dialogue-red,
+#page5-dialogue-cyan,
+#page7-dialogue-red,
+#page7-dialogue-cyan {
+    line-height: 2.55 !important;
+    word-spacing: -0.08em !important;
+}
+#eram-page3-dialogue .adventure-glyph,
+#page5-dialogue .adventure-glyph,
+#page7-dialogue .adventure-glyph {
+    margin-right: 0.16em !important;
+}
+
+#eram-page3-dialogue,
+#page5-dialogue,
+#page7-dialogue,
+#eram-page3-red,
+#eram-page3-cyan,
+#eram-page3-white,
+#page5-dialogue-red,
+#page5-dialogue-cyan,
+#page5-dialogue-white,
+#page7-dialogue-red,
+#page7-dialogue-cyan,
+#page7-dialogue-text {
+    line-height: 3.05 !important;
+    word-spacing: 0.20em !important;
+}
+#eram-page3-red,
+#page5-dialogue-red,
+#page7-dialogue-red {
+    transform: translateX(-2px) !important;
+    opacity: 0.74;
+}
+
+#eram-page3-cyan,
+#page5-dialogue-cyan,
+#page7-dialogue-cyan {
+    transform: translateX(2px) !important;
+    opacity: 0.70;
+}
+#eram-page3-red, #page5-dialogue-red, #page7-dialogue-red {
+    transform: translateX(-2px) !important;
+    opacity: .74 !important;
+}
+#eram-page3-cyan, #page5-dialogue-cyan, #page7-dialogue-cyan {
+    transform: translateX(2px) !important;
+    opacity: .70 !important;
+}
+#secret-dialogue-text,
+#secret-choice-question {
+    white-space: pre-wrap !important;
+    line-height: 3.05 !important;
+}
+
+#secret-stage,
+#secret-dialogue,
+#secret-choice,
+#secret-soul-button,
+#secret-final-line {
+    font-family: "AdventureBoard", monospace !important;
+}
+#secret-dialogue,
+#secret-choice,
+#secret-soul-button,
+#secret-final-line {
+    font-size: clamp(28px, 1.927vw, 37px) !important;
+    letter-spacing: 0 !important;
+}
+#secret-dialogue,
+#secret-choice {
+    width: min(900px, 78vw) !important;
+    height: min(300px, 30vh) !important;
+    min-height: 250px !important;
+    bottom: 4.5% !important;
+    padding: 12px 28px 20px !important;
+}
+
+#secret-dialogue-text {
+    display: block !important;
+    width: fit-content !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    white-space: pre-wrap !important;
+    line-height: 40px !important;
+    text-align: left !important;
+}
+
+#secret-choice-question {
+    white-space: pre-wrap !important;
+    line-height: 40px !important;
+}
+#secret-choice-row {
+    top: 46% !important;
+}
+
+.secret-choice-option {
+    font-size: inherit !important;
+    line-height: 40px !important;
+}
+.secret-choice-option:first-child {
+    left: 67px !important;
+}
+
+.secret-choice-option:last-child {
+    right: 49px !important;
+}
+#secret-choice-heart {
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    min-height: 26px !important;
+    max-width: 26px !important;
+    max-height: 26px !important;
+    transform: none !important;
+    image-rendering: pixelated !important;
+    image-rendering: crisp-edges !important;
+    object-fit: fill !important;
+}
+#secret-soul-button {
+    top: 62.4%;
+    gap: 142px !important;
+    line-height: 40px !important;
+}
+
+#secret-soul {
+    width: 29px !important;
+    height: 29px !important;
+    transform: none !important;
+    object-fit: fill !important;
+}
+
+#secret-soul-button.glowing #secret-soul,
+#secret-soul-button.connected #secret-soul {
+    transform: none !important;
+}
+body.secret-page-active #heart-cursor {
+    display: none !important;
+}
+
+#eram-page3-dialogue .eram-page3-layer {
+    font-size: clamp(16px, 1.22vw, 23px) !important;
+}
+
+#page5-dialogue .page5-dialogue-layer {
+    font-size: clamp(15px, 1.12vw, 21px) !important;
+}
+
+#page7-dialogue .page7-dialogue-layer {
+    font-size: clamp(16px, 1.18vw, 22px) !important;
+}
+#eram-page3-dialogue,
+#eram-page3-red,
+#eram-page3-cyan,
+#eram-page3-white,
+#page5-dialogue,
+#page5-dialogue-red,
+#page5-dialogue-cyan,
+#page5-dialogue-white,
+#page7-dialogue,
+#page7-dialogue-red,
+#page7-dialogue-cyan,
+#page7-dialogue-text {
+    line-height: 3.15 !important;
+}
+
+#secret-dialogue-text {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    text-align: left !important;
+    align-self: flex-start !important;
+}
+#secret-dialogue,
+#secret-choice {
+    height: min(320px, 32vh) !important;
+    min-height: 270px !important;
+}
+
+#secret-dialogue-text,
+#secret-choice-question {
+    line-height: 42px !important;
+}
