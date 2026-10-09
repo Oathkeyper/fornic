@@ -13,20 +13,20 @@
         heyThere: {
             label: "Hey there.",
             first: [ "Nice to see you again.", "I tell ya, I wasn't worried one bit!", "I told you the king's a friendly guy!", "King Fluffybuns...I knew he wouldn't cause you any trouble...", "Oh? He did? He almost what?", "...", "Woah there! You're back!" ],
-            repeat: [ "Undyne probably gave you trouble.", "Yeah...There goes the little urchin...ready to fight humans with no fear! Wa ha ha!", "Y'know...", "Tell no one this, not even her.", "Her power... at its deepest, is unimaginable.", "I reckon that in the heat of the moment, if all hope was lost...", "She'd rise up. Her power would be absolutely glorious. Even if it would kill her, she'd rise up.", "A warrior spirit, through and through.", "The only one that could stop her even when she's determined...", "Is you, probably. Geheheh...", "Can I ask that ya keep an eye out for her? Keep her safe?", "No matter where you both end up." ]
+            repeat: [ "Undyne probably gave you trouble.", "Yeah... There goes the little urchin... Ready to fight humans with no fear! Wa ha ha!", "Y'know...", "Tell no one this, not even her.", "Her power... at its deepest, is unimaginable.", "I reckon that in the heat of the moment, if all hope was lost...", "She'd rise up. Her power would be absolutely glorious. Even if it would kill her, she'd rise up.", "A warrior spirit, through and through.", "The only one that could stop her even when she's determined...", "Is you, probably. Geheheh...", "Can I ask that ya keep an eye out for her? Keep her safe?", "No matter where you both end up." ]
         },
         emblem: {
             label: "That emblem behind you...",
             firstBeforeStop: [ "Yeah, it seems the prophecy came true!", "Everyone's was running through 'ere all excited.", "I'm not one to run down on the fun parade...", "But," ],
             firstAfterStop: [ "I don't know how to feel about it.", "Not being free, no.\nWe LONGED for liberty!", "I'm talkin' about what they call \"fate\".", "I don't believe in it.", "..." ],
-            repeat: [ "Guess I can't be too gloomy, though.", "I've got dreams! This shop 'ere finally made me enough money to get started?", "First I need to buy a lot of ink and...", "Hm? What's that I'm talking about?", "...", "Keep your eyes open. That's all I can say." ]
+            repeat: [ "Guess I can't be too gloomy, though.", "I've got dreams! This shop 'ere finally made me enough money to get started!", "First I need to buy a lot of ink and...", "Hm? What's that I'm talking about?", "...", "Keep your eyes open. That's all I can say." ]
         },
         king: {
             label: "I met the king",
             first: [ "And that's where everything went down, eh?", "Yeah, maybe if you brought the hammer with you, things woulda gone smoother.", "But I have a hard time giving children weapons.", "Look what happened with Undyne. Wa ha ha!", "...", "Don't let 'er know I said that." ],
             repeatBeforeStop: [ "Once, on an anniversary of the war...", "The King and I, we were sitting down in New Home, having some tea.", "Two old men reminiscing on the good ol days.", "Even grown men can get lost in old memories sometimes, y'know?" ],
             peculiar: [ "He asked me a... peculiar question while we were drinking the tea." ],
-            asgore: [ '"... Gerson?"', '"This weird sense of deja vu I get...It has left me curious..."', "\"As all the humans fell down, I could see their spirit in their eyes.\nSome were full of hope, some were full of despair, but all were filled with a sense of intrigue.\nThey either told me\n'We don't have to do this!'\nOr\n'We didn't have to do this.'\"", '"Afterward, I lost sleep."', '"Gerson...\nDo you think...\nDo you think I could actually change?"' ],
+            asgore: [ '"... Gerson?"', '"This weird sense of deja vu I get... It has left me curious..."', "\"As all the humans fell down, I could see their spirit in their eyes.\nSome were full of hope, some were full of despair, but all were filled with a sense of intrigue.\nThey either told me\n'We don't have to do this!'\nOr\n'We didn't have to do this.'\"", '"Afterward, I lost sleep."', '"Gerson...\nDo you think...\nDo you think I could actually change?"' ],
             afterAsgore: [ "I tell ya. Both of you.", "People can be changed...", "Even the worst person can.", "That's what I believe.", "The question is...\nThe story of your life...\nAnd all the journeys that comprise your chapters...", "Can you revise it?", 'I guess "fate" awaits your answer, little one.' ]
         }
     };
