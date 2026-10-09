@@ -51,7 +51,7 @@
             } ],
             repeat: [ {
                 face: 0,
-                lines: [ "There's nothing I could tell you that could help.", "But, I can tell you this...", "Once, when the 3rd human was here... The one with a bandana...", "My family was a bit worried. Humans are really strong, y'know?", "One of the young'ins of mine ran up to them, and looked at them dead in their eye through the cowboy hat.", "They said to them:", '"Leave us alone, please! You big bully! We didn\'t do anything wrong!"', "Before they threw a rock at 'em.", "The human giggled, and left us alone.", "My young'n was shaking, terrified afterward." ]
+                lines: [ "There's nothing I could tell you that could help.", "But, I can tell you this...", "Once, when the 3rd human was here... The one with a bandana...", "My family was a bit worried. Humans are really strong, y'know?", "One of the young'ins of mine ran up to them, and looked at them dead in their eye.", "They said to them:", '"Leave us alone, please! You big bully! We didn\'t do anything wrong!"', "Before they threw a rock at 'em.", "The human giggled, and left us alone.", "My young'n was shaking, terrified afterward." ]
             }, {
                 face: 4,
                 lines: [ "All this to say...", "You're stronger, and more fierce than ya think!", "The power you expect outta what's giving you fear..." ]
